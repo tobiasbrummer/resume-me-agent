@@ -1,0 +1,21 @@
+% Section order for this application. Loaded by templates/document.tex
+% instead of the default order if this file exists.
+%
+% Default order (if this file is missing):
+%   projects.md -> clearpage -> experience.md -> clearpage -> languages.md -> skills
+%
+% Available building blocks in this application directory:
+%   projects.md, experience.md, languages.md, skills.tex
+% Plus \clearpage for controlled page breaks.
+%
+% Per application:
+% - Builder / research roles: projects before experience
+% - Lead / management roles: experience before projects
+% - Teaching-heavy roles: pull teaching to the top within experience.md
+
+\markdownInput{projects.md}%
+\clearpage
+\IfFileExists{experience.md}{\markdownInput{experience.md}}{}%
+\IfFileExists{languages.md}{\markdownInput{languages.md}}{}%
+\clearpage
+\IfFileExists{skills.tex}{\subsection{Skills}\inputskills}{}%

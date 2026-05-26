@@ -1,0 +1,139 @@
+% Layout-Huelle einer Bewerbung.
+%
+% Wird vom application-lokalen bewerbung.tex via \input geladen.
+% Erwartet im aktuellen Verzeichnis:
+%   meta.tex         -- \def\meta...-Variablen (Empfaenger, Datum, Betreff, ...)
+%   anschreiben.md   -- Anschreiben-Body
+%   profil.md        -- Profil-Absatz (genau einer; wird neben dem Foto gesetzt)
+%   experience.md    -- Berufserfahrung (optional, eigene MD)
+%   lebenslauf.md    -- restliche CV-Sektionen (Projects, Teaching, ...)
+%   skills.tex       -- Skills-Block im Flex-Layout (via "## Skills" Hook)
+% Asset-Pfade (signatur, portrait) werden via TEXINPUTS aus assets/ gefunden.
+
+\begin{document}
+
+% --- Sprachwahl (de oder en) ---
+\ifdefined\metaspracheen
+  \selectlanguage{english}%
+\else
+  \selectlanguage{ngerman}%
+\fi
+
+% =============================================================
+% SEITE 1 -- ANSCHREIBEN (keine Seitenzahl, zaehlt nicht mit)
+% =============================================================
+
+\thispagestyle{empty}% Anschreiben: gar kein Footer, gar keine Seitenzahl
+
+% Absenderzeile oben
+{\absenderzeile}\\[\glueexpr 2.4\rem minus 2\rem\relax]
+
+% Empfaengerblock (linksbuendig)
+\fontsizebody \metaempfaengerfirma\\
+\ifx\metaempfaengername\empty\else\metaempfaengername\\\fi
+\metaempfaengerstrasse\\
+\metaempfaengerplzort
+
+\vspace{\dimexpr 1.2\rem minus 0.4\rem\relax}
+
+% Betreff (fett, links, mit hartem purple Schatten analog Foto) und Datum (rechts).
+% Text wird zweimal gesetzt: Schatten in purple bei 0.8mm/-0.8mm, Original bei (0,0).
+\noindent\hspace{\dimexpr -1\rem\relax}%
+\begin{tikzpicture}[baseline=(t.base), inner sep=0pt, outer sep=0pt]
+  \node[anchor=base west, text=purple] at (0.3mm,-0.3mm)
+        {\fontsemibold\fontsizebetreff\metabetreff};
+  \node[anchor=base west]              (t) at (0,0)
+        {\fontsemibold\fontsizebetreff\metabetreff};
+\end{tikzpicture}%
+\hfill\fontsizeabsender\textcolor{muted}\metadatum
+
+\vspace{\glueexpr 0.4\rem plus 0.2\rem\relax}
+
+% Anrede
+{\fontsizebody \metaanrede}
+
+% Anschreiben-Body (direkt aus Markdown). Das \par MUSS innerhalb der
+% \fontsizebody-Gruppe stehen, sonst nutzt der Linebreak des letzten Absatzes
+% den default \baselineskip (kleiner) statt 1.2\rem -> letzte Zeile gestaucht.
+\RaggedRight
+{\fontsizebody \markdownInput{anschreiben.md}\par}
+
+% Grussformel + Signatur
+{\fontsizebody \metagrussformel}
+
+\vspace{\dimexpr -0.2\rem\relax}
+\hspace{\dimexpr -0.8\rem\relax}\includegraphics[height=\glueexpr 3\rem plus 1\rem\relax]{signatur}\\[\dimexpr -0.3\rem\relax]
+\metaname
+
+% Anlagen-Hinweis unten rechts (optional, wenn \metaanlagen definiert).
+% Label sprachabhaengig via \anlagenlabel (Anlagen/Enclosures), Inhalt aus meta.yaml.
+\vfill
+\ifdefined\metaanlagen
+  \noindent\hfill{\fontsizeabsender\color{muted}\anlagenlabel: \metaanlagen}%
+\fi
+
+% =============================================================
+% SEITE 2+ -- LEBENSLAUF (Seitenzahlen ab 1, linksbuendig im Footer)
+% =============================================================
+
+\clearpage
+\setcounter{page}{1}% CV-Seitenzaehler bei 1 starten
+\pagestyle{scrheadings}% ab hier Footer mit Seitenzahl (linksbuendig via preamble)
+\fontsizebody% CV-default font + baselineskip (sonst rendern \markdownInput-Bloecke
+            % mit 10.5pt mainfont und kleinerem baselineskip -> mehrzeilige Bullet-Items
+            % wirken gestaucht). Section-Headings haben eigene \addtokomafont-Settings.
+
+% Absenderzeile wieder oben
+{\absenderzeile}\\[\glueexpr 1.8\rem plus 1.6\rem\relax]
+
+% CV-Titel (sprachabhaengig via \cvtitle aus preamble.tex)
+\noindent\hspace{\dimexpr -1\rem\relax}%
+\begin{tikzpicture}[baseline=(t.base), inner sep=0pt, outer sep=0pt]
+  \node[anchor=base west, text=purple] at (0.3mm,-0.3mm)
+        {\fontsemibold\fontsizebetreff\cvtitle};
+  \node[anchor=base west]              (t) at (0,0)
+        {\fontsemibold\fontsizebetreff\cvtitle};
+\end{tikzpicture}%
+\vspace{\dimexpr -0.8\rem\relax}
+
+% Profil + Portrait: Foto RECHTS, Text links. Bildhoehe = Profil-Boxhoehe.
+\IfFileExists{profil.md}{%
+  \begin{lrbox}{\profilbox}%
+    \begin{minipage}[t]{\dimexpr\linewidth-\bildbreite-1em\relax}\vspace{0pt}%
+      \fontsizebody\markdownInput{profil.md}%
+    \end{minipage}%
+  \end{lrbox}%
+  % \hspace nach \hfill schiebt das Bild in den rechten Seitenrand. Erzeugt
+  % eine harmlose "Overfull \hbox"-Warnung im Log.
+  \noindent\usebox{\profilbox}\hfill\hspace*{\dimexpr 1.5\rem\relax}%
+  \begin{minipage}[t]{\bildbreite}\vspace{0pt}%
+    % Foto mit hartem purple Schatten (1mm rechts+unten) via TikZ.
+    % Schatten zuerst (anchor=north west bei 1mm,-1mm), Foto drueber bei (0,0).
+    \sbox\imgbox{\includegraphics[height=\dimexpr\ht\profilbox+\dp\profilbox\relax,
+                                  width=\bildbreite, keepaspectratio]{portrait}}%
+    \begin{tikzpicture}[inner sep=0pt, outer sep=0pt]
+      \node[anchor=north west, fill=purple,
+            minimum width=\wd\imgbox,
+            minimum height=\dimexpr\ht\imgbox+\dp\imgbox\relax] at (0.8mm,-0.8mm) {};
+      \node[anchor=north west] at (0,0) {\usebox\imgbox};
+    \end{tikzpicture}%
+  \end{minipage}\par
+  \vspace{\dimexpr 0.4\rem\relax}%
+}{}%
+
+% Section-Reihenfolge: per Application override via sections.tex (optional).
+% Wenn applications/<job>/sections.tex existiert, wird das geladen statt der
+% default-order unten. So kann jede Bewerbung ihre eigene Section-Reihenfolge
+% (+ \clearpage-Positionen) bestimmen.
+\IfFileExists{sections.tex}{%
+  \input{sections.tex}%
+}{%
+  \markdownInput{projects.md}%
+  \clearpage
+  \IfFileExists{experience.md}{\markdownInput{experience.md}}{}%
+  \clearpage
+  \IfFileExists{languages.md}{\markdownInput{languages.md}}{}%
+  \IfFileExists{skills.tex}{\subsection{Skills}\inputskills}{}%
+}%
+
+\end{document}

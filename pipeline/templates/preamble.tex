@@ -1,0 +1,335 @@
+% Bewerbungs-Template: Preamble
+% Wird von templates/bewerbung.tex eingebunden.
+
+\documentclass[10.5pt,a4paper]{scrartcl}
+
+% Keine automatische Sektionsnummerierung -- wir wollen kein "1.1 Profile"
+\setcounter{secnumdepth}{-2}
+
+% --- Sprache (de oder en, wird aus meta.tex via \metaspracheXX gesetzt) ---
+\usepackage{iftex}
+\usepackage[ngerman,english]{babel}
+
+% --- Schrift: Fira Sans via fontspec (lualatex / xelatex) ---
+% Ligatures=TeX aktiviert die klassischen TeX-Glyph-Ligaturen:
+%   --   -> en-dash (–)         ---  -> em-dash (—)
+%   ``''  -> typografische Anfuehrungszeichen
+%   <<>>  -> franzoesische Guillemets
+% Nur Glyph-Substitution beim Rendern -- die Tokens auf TeX-Ebene bleiben
+% unveraendert, d.h. \IfSubStr{...}{--} funktioniert weiter (siehe \cvsubsection).
+\usepackage{fontspec}
+\setmainfont{Fira Sans Regular}[
+  Numbers       = OldStyle,
+  Ligatures     = {Common, TeX},
+  Contextuals   = Alternate,
+  Kerning       = On,
+  StylisticSet  = {1},
+  Style         = Alternate,
+]
+
+\newfontfamily\fontsemibold{Fira Sans SemiBold}[Ligatures={Common,TeX}, Kerning=On, StylisticSet={1}, Style=Alternate]
+\newfontfamily\fontmedium{Fira Sans Medium}[Ligatures={Common,TeX}, Kerning=On, StylisticSet={1}, Style=Alternate]
+\newfontfamily\fontregular{Fira Sans Regular}[Ligatures={Common,TeX}, Kerning=On, StylisticSet={1}, Style=Alternate]
+\newfontfamily\fontitalic{Fira Sans Italic}[Ligatures={Common,TeX}, Kerning=On, StylisticSet={1}, Style=Alternate]
+
+
+% --- REM ---
+\newlength{\rem}
+\setlength{\rem}{0.4cm}
+
+% --- Packages ---
+\usepackage{fontawesome5}
+\usepackage{graphicx}
+\usepackage{tikz}        % fuer das Foto mit hartem Schatten (document.tex)
+\usepackage{ragged2e}    % \RaggedRight im Anschreiben
+\usepackage{microtype}
+% Hanging punctuation: Satzzeichen am Zeilenanfang/-ende ragen leicht in den
+% Margin, damit der optische Rand sauber bleibt (Knuth: "protrusion"). Default
+% in microtype lualatex aktiv -- explizit nur zur Sicherheit.
+\microtypesetup{protrusion=true,activate={true,nocompatibility}}
+\usepackage[normalem]{ulem}
+\usepackage[all]{nowidow}
+\usepackage{xstring}     % \IfSubStr / \StrBefore / \StrBehind -- fuer \cvsubsection, \cvdlitem
+
+% --- Seitenlayout: angelehnt an das ODT (oben 0.85cm, unten 1.5cm, links 2.5cm, rechts 2cm) ---
+\usepackage[
+  a4paper,
+  top    = {\dimexpr\rem*4\relax},
+  bottom = {\dimexpr\rem*5\relax},
+  left   = {\dimexpr\rem*5\relax},
+  right  = {\dimexpr\rem*5\relax},
+  headheight = {\dimexpr\rem*3\relax},
+  headsep    = \rem,
+  footskip   = {\dimexpr\rem*2\relax},
+]{geometry}
+
+% --- Farben (zurueckhaltend) ---
+\usepackage{xcolor}
+\definecolor{text}{HTML}{282A36}
+\definecolor{muted}{HTML}{44475A}
+\definecolor{purple}{HTML}{BD93F9}
+
+
+% --- Listen, Bilder, Layout-Helfer ---
+\usepackage{enumitem}
+\setlist[itemize]{
+  leftmargin = \dimexpr 0.6\rem\relax,
+  itemsep    = \dimexpr 0.2\rem\relax,
+  parsep     = 0pt,
+  topsep     = 0em,
+label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem\relax},
+}
+
+% Asset-Pfad: erst absoluter Container-Mount, dann relativer Fallback fuer
+% lokale Builds ausserhalb des Containers. LaTeX probiert in Reihenfolge.
+\graphicspath{{/job/assets/}{../../assets/}}
+
+% --- Kopf-/Fusszeile: Seite X von Y ---
+\usepackage{lastpage}
+\usepackage{scrlayer-scrpage}
+\pagestyle{scrheadings}
+% Footer linksbuendig (\lofoot* statt \cfoot*). Anschreiben nutzt
+% \thispagestyle{plain.scrheadings} -> kein Footer. CV setzt page-Counter
+% bei 1 neu und nutzt \pagestyle{scrheadings}.
+\clearpairofpagestyles
+\lofoot*{\color{muted}\fontsizeabsender\metaseite~\thepage~\metavon~\pageref{LastPage}}
+\setkomafont{pagefoot}{\fontregular}
+
+% --- Hyperlinks (dezent, ohne Box) ---
+\usepackage[
+  colorlinks = true,
+  urlcolor   = text,
+  linkcolor  = text,
+  citecolor  = text,
+  pdfborder  = {0 0 0},
+]{hyperref}
+
+
+% --- Unterstreichungs-Einstellungen ---
+\renewcommand{\ULdepth}{\dimexpr 0.35\rem\relax}        % Abstand der Linie zur Schrift
+\renewcommand{\ULthickness}{\dimexpr 0.2\rem\relax}    % Strichstaerke
+
+% In \href einbauen
+\let\oldhref\href
+\renewcommand{\href}[2]{\oldhref{#1}{#2}}
+
+\newcommand{\bodylink}[2]{\oldhref{#1}{\textcolor{purple}{\uline{\textcolor{text}{#2}}}}}
+
+% Icon-Link: kein \uline, nur purple einfaerben (fuer FontAwesome-Icons)
+\newcommand{\iconhref}[2]{\oldhref{#1}{\textcolor{purple}{#2}}}
+
+% --- Absatz-Stil: kein Einzug, Abstand zwischen Absaetzen ---
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{\glueexpr 1.0\rem plus 0.4\rem\relax}
+
+% Seiten unten *nicht* per parskip-Stretch ausgleichen -- sonst verteilt TeX
+% den ungenutzten Platz auf die Absatz-Abstaende, und kompaktere Aenderungen
+% in einer Sektion (z.B. Skills) verschieben sichtbar Abstaende in *anderen*
+% Sektionen. \raggedbottom laesst die Seite unten ruhig kuerzer enden.
+% \raggedbottom
+
+% --- Schriftgrößen ---
+\newcommand{\fontsizebody}{\fontsize{\dimexpr 0.9\rem\relax}{\dimexpr 1.2\rem\relax}\selectfont}
+\newcommand{\fontsizebetreff}{\fontsize{\dimexpr 1.4\rem\relax}{\rem}\selectfont}
+\newcommand{\fontsizeheader}{\fontsize{\dimexpr 1.2\rem\relax}{\rem}\selectfont}
+\newcommand{\fontsizesubheader}{\fontsize{\dimexpr 1\rem\relax}{\rem}\selectfont}
+\newcommand{\fontsizeabsender}{\fontsize{\dimexpr 0.9\rem\relax}{\dimexpr 0.7\rem\relax}\selectfont}
+
+% --- Section-Schriftgrade & Abstaende dezenter ---
+\addtokomafont{section}{\fontsemibold\fontsizebetreff\color{text}}
+\addtokomafont{subsection}{\fontsemibold\fontsizeheader\color{text}\hspace{\dimexpr -0.6\rem\relax}}
+\addtokomafont{subsubsection}{\fontsemibold\fontsizesubheader\color{text}}
+% Hinweis: scrartcl kennt nur bis \subsubsection. Tieferes Level (####) wird
+% ueber den Markdown-Renderer headingFour -> \cvsubsection abgefangen, der
+% intern \subsubsection ruft -- daher kein \addtokomafont{subsubsubsection} noetig.
+\RedeclareSectionCommand[
+  beforeskip = 0.0cm,
+  afterskip  = 0.0cm,
+  runin      = false,
+]{section}
+\RedeclareSectionCommand[
+  beforeskip = 0.0cm,
+  afterskip  = \dimexpr -0.4\rem\relax,
+  runin      = false,
+]{subsection}
+\RedeclareSectionCommand[
+  beforeskip = 0.0cm,
+  afterskip  = \dimexpr -0.8\rem\relax,
+  runin      = false,
+]{subsubsection}
+
+% --- Helper-Makros ---
+
+% Sprachabhaengige Labels (gesteuert ueber \metaspracheen aus meta.tex)
+\newcommand{\cvtitle}{\ifdefined\metaspracheen Curriculum Vitae\else Lebenslauf\fi}
+\newcommand{\anlagenlabel}{\ifdefined\metaspracheen Enclosures\else Anlagen\fi}
+
+% Save-Box fuer Profil-Layout (Bildhoehe = Profil-Boxhoehe, zwei-Spalten)
+\newsavebox{\profilbox}
+\newsavebox{\imgbox}     % fuer Foto + Schatten-Overlay in document.tex
+
+% Spaltenbreite fuer das Foto neben dem Profil (Skip = stretch/shrink moeglich).
+\newlength{\bildbreite}
+\setlength{\bildbreite}{\glueexpr 8\rem plus 2\rem\relax}
+
+% --- Flex-Layout: CSS-flexbox-flow ohne Spalten -----------------------------
+% Jedes \flexitem wird in seiner natuerlichen Breite gesetzt (\sbox), gefolgt
+% von einem festen \flxgap. Wenn das naechste Item nicht mehr in die aktuelle
+% Zeile passt, kommt ein \par (neue Zeile). Items mit natuerlicher Breite
+% groesser als \linewidth werden in einer parbox umbrochen.
+%
+% Aufruf:
+%   \flexstart
+%   \flexitem{kurz}\flexitem{mittel langer text}\flexitem{wirklich sehr lang}
+%   \flexend
+\newsavebox{\flxbox}
+\newdimen\flxitemwd
+\newdimen\flxrowused
+\newdimen\flxgap
+\newdimen\flxrowsep
+\newdimen\flxcatabove
+\newdimen\flxcatbelow
+\flxgap     = \dimexpr 0.6\rem\relax   % horizontaler Abstand zwischen Items
+\flxrowsep  = \dimexpr 0.1\rem\relax   % vertikaler Abstand zwischen Reihen
+\flxcatabove= \dimexpr -0.4\rem\relax   % Abstand ueber Kategorie-Heading
+\flxcatbelow= \dimexpr -0.8\rem\relax   % Abstand unter Kategorie-Heading (vor items)
+
+\newcommand{\flxbullet}[1]{%
+  \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr 0.2\rem\relax}#1%
+}
+
+% \flexstart oeffnet eine Gruppe und ueberschreibt \parskip lokal mit
+% \flxrowsep, sodass der vertikale Abstand zwischen Reihen kontrolliert
+% wird (sonst wuerde der globale \parskip = 1.2rem dazwischen greifen).
+\newcommand{\flexstart}{%
+  \par\noindent
+  \begingroup
+  \setlength{\parskip}{\flxrowsep}%
+  \flxrowused=0pt
+  \noindent
+}
+
+\newcommand{\flexitem}[1]{%
+  \sbox\flxbox{\flxbullet{#1}}%
+  \flxitemwd=\wd\flxbox
+  % Item breiter als \linewidth -> in parbox umbrechen, full width
+  \ifdim\flxitemwd>\linewidth
+    \sbox\flxbox{\parbox[t]{\linewidth}{\flxbullet{#1}}}%
+    \flxitemwd=\linewidth
+  \fi
+  % Row-break wenn das Item nicht mehr in die aktuelle Zeile passt
+  \ifdim\dimexpr\flxrowused+\flxitemwd\relax>\linewidth
+    \par\noindent
+    \flxrowused=0pt
+  \fi
+  \usebox\flxbox
+  \hspace{\flxgap}%
+  \advance\flxrowused by \dimexpr\flxitemwd+\flxgap\relax
+}
+
+\newcommand{\flexend}{\par\endgroup}
+
+% Skill-Kategorie-Heading (innerhalb skills.tex vor jedem \flexstart-Block).
+% Abstaende ueber/unter dem Heading via \flxcatabove / \flxcatbelow.
+\newcommand{\flexcategory}[1]{%
+  \par\vspace{\flxcatabove}%
+  {\fontsemibold\fontsizesubheader\color{text}#1}\par
+  \vspace{\flxcatbelow}%
+}
+
+% Hilfsmakro: skills.tex einlesen mit \endlinechar=-1, sonst injiziert
+% das markdown-Renderer-Umfeld zwischen Zeilen \par-Trenner und die
+% \flexitem-Reihen brechen vor der eigentlichen Row-Logik.
+\newcommand{\inputskills}{%
+  \begingroup\endlinechar=-1\relax
+  \input{skills.tex}%
+  \endgroup
+}
+
+% CV-Job-Subsubsection: wenn der Heading "Firma -- Datum" enthaelt, links/rechts
+% mit \hfill setzen; sonst normaler subsubsection. Wird vom markdown-Renderer
+% headingThree aufgerufen (siehe \markdownSetup unten).
+\newcommand{\cvsubsection}[1]{%
+  \IfSubStr{#1}{--}{%
+    \StrBefore[1]{#1}{ --}[\jobfirma]%
+    \StrBehind[1]{#1}{-- }[\jobdatum]%
+    \subsubsection{\makebox[\linewidth][s]{%
+    {\fontmedium\fontsizebody\color{muted} \jobfirma}\hfill{\fontmedium\fontsizebody\color{muted}\jobdatum}%
+    }}%
+  }{%
+    \subsubsection{\fontsemibold\fontsizeheader{#1}}%
+  }%
+}
+
+% Definition-List-Item (Projects): nur Titel (fett), optional inline-URL
+% nach dem Titel als GitHub-Icon. Kein rechtsbuendiger Untertitel mehr --
+% der Text nach " -- " wird ignoriert (Backward-Compat alter Markdown-Files).
+%   "Titel"                       -> Titel
+%   "Titel https://URL"           -> Titel + GitHub-Icon (Link)
+%   "Titel https://URL -- ..."    -> wie oben (Rest verworfen)
+% Description (": ...") bleibt unveraendert darunter.
+\newcommand{\cvdlitem}[1]{%
+  \par\vspace{\dimexpr -0.6\rem\relax}%
+  \noindent
+  \llap{\textcolor{purple}{\faArrowRight[solid]}\hspace{\dimexpr 0.5\rem\relax}}%
+  \IfSubStr{#1}{--}{%
+    \StrBefore[1]{#1}{ --}[\dlfirst]%
+  }{%
+    \def\dlfirst{#1}%
+  }%
+  \IfSubStr{\dlfirst}{https://}{%
+    \StrBefore[1]{\dlfirst}{ https://}[\dltitle]%
+    \StrBehind[1]{\dlfirst}{https://}[\dlurl]%
+    {\fontsemibold\fontsizebody\dltitle}\hspace{\dimexpr 0.3\rem\relax}%
+    \iconhref{https://\dlurl}{\faGithub}%
+  }{%
+    {\fontsemibold\fontsizebody\dlfirst}%
+  }%
+  \par\vspace{\dimexpr -1.0\rem\relax}%
+}
+
+% Absender-Zeile (einzeilig): Name + Adresse links, drei FontAwesome-Icons
+% (Telefon, Email, GitHub) rechts via \hfill -- alle drei klickbar.
+\newcommand{\absenderzeile}{%
+  \fontsizeabsender
+  {\fontsemibold\metaname}\ \textcolor{purple}{\faAngleRight[regular]}\ \fontsizeabsender\metaadresse\ \textcolor{purple}{\faAngleRight[regular]}\ \metaplzort
+  \par
+  \vspace{\dimexpr -0.9\rem\relax}
+  \hspace{\dimexpr -1.2\rem\relax}
+\textcolor{purple}{\fontsize{\dimexpr 0.7\rem\relax}{\rem}\selectfont\faPhone[solid]}\hspace{\dimexpr 0.3\rem\relax}\href{\metatelhref}{\textcolor{muted}{\metatel}}
+  \hspace{\dimexpr 0.2\rem\relax}
+\textcolor{purple}{\fontsize{\dimexpr 0.7\rem\relax}{\rem}\selectfont\faEnvelope[solid]}\hspace{\dimexpr 0.3\rem\relax}\href{mailto:\metaemail}{\textcolor{muted}{\metaemail}}
+  \hspace{\dimexpr 0.2\rem\relax}
+\textcolor{purple}{\fontsize{\dimexpr 0.9\rem\relax}{\rem}\selectfont\raisebox{\dimexpr -0.1\rem\relax}{\faGithub}}\hspace{\dimexpr 0.3\rem\relax}\href{https://\metagithub}{\textcolor{muted}{\metagithub}}
+}
+
+% --- Markdown-Renderer (witiko/markdown CTAN package) ---
+% Erlaubt \markdownInput{file.md} und ersetzt die pandoc-Pipeline.
+% Vollstaendige Options-Liste: `texdoc markdown`.
+\usepackage[
+  smartEllipses = true,   % "..." -> echte Ellipsis
+  fencedCode    = true,   % ``` code blocks
+  pipeTables    = true,   % | tabellen |
+  definitionLists = true,
+  % hybrid bewusst aus: damit werden &, %, # etc. automatisch escaped.
+  % Wer LaTeX-Befehle im Markdown braucht, kann sie in \begin{markdown}-Bloecke
+  % als raw-tex einbetten oder das Macro pro Stelle aktivieren.
+]{markdown}
+
+\markdownSetup{
+  renderers = {
+    headingOne        = {\section{#1}},
+    headingTwo        = {\subsection{#1}}, % "## ..." -> \subsection (Skills wird ueber document.tex eingebunden)
+    headingThree      = {\subsubsection{#1}},                   % alle ### (z.B. Rolle, Projekt-Titel)
+    headingFour       = {\cvsubsection{#1}\vspace{\dimexpr 0.1\rem\relax}},                    % alle #### (splittet bei " -- " auf Firma\hfill Datum)
+    strongEmphasis    = {\fontmedium{#1}}\fontregular,   % alle **fett**
+    emphasis          = {\fontitalic{#1}}\fontregular,                       % alle _kursiv_
+    link              = {\bodylink{#2}{#1}},                     % alle [text](url)
+    dlBegin           = {\vspace{\dimexpr 0.6\rem\relax}},
+    dlEnd             = {},
+    dlItem            = {\cvdlitem{#1}},
+    dlItemEnd         = {},
+    dlDefinitionBegin = {\noindent\fontsizebody},
+    dlDefinitionEnd   = {\par},
+  },
+}

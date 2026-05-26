@@ -1,0 +1,29 @@
+# Personal stammdaten -- you decide whether to commit this. Default: not
+# committed, in case the repo ever becomes public.
+user.yaml
+
+# LaTeX build artefacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.pdf
+
+# markdown package cache (witiko/markdown)
+_markdown_*/
+
+# meta.tex is generated per application
+applications/*/meta.tex
+
+# Reviewer notes / scratch
+applications/*/reviewer*/
+applications/*/reviewer-*.md
+*.bak
+
+# NFS, editor
+.nfs*
+*.swp
+.DS_Store

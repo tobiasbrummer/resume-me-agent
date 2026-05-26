@@ -1,0 +1,23 @@
+# My applications
+
+Job applications built with [resume-me-agent](https://github.com/tobiasbrummer/resume-me-agent).
+
+## Quick start
+
+```sh
+./bewerbung new <company>      # new application from applications/_template/
+# edit applications/<company>/{meta.yaml,profil.md,anschreiben.md,…}
+./bewerbung build <company>    # build PDF
+```
+
+Personal stammdaten live in `user.yaml`. Per-application data in
+`applications/<company>/meta.yaml`.
+
+See `AGENT_INSTRUCTIONS_FILE` for the full workflow (posting analysis,
+optimization for ATS / LLM screening, self-test, build).
+
+## Update the pipeline
+
+```sh
+docker pull ghcr.io/tobiasbrummer/resume-me-agent:latest
+```

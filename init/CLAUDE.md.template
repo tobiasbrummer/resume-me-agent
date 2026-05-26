@@ -1,0 +1,134 @@
+# Your applications repository
+
+This repo holds your job applications. The Markdown-to-PDF pipeline lives in a
+Docker image (resume-me-agent). All builds run in that container.
+
+For the application workflow (analyzing a posting, gap analysis, optimization,
+self-test, build), see `.claude/skills/bewerbung.md`. This file documents the
+pipeline internals so edits to templates and individual applications stay safe.
+
+## Layout
+
+```
+.
+├── user.yaml                       # your personal stammdaten (name, address, …)
+├── applications/
+│   ├── _template/                  # your generic baseline material
+│   └── <company>/                  # one per application
+│       ├── bewerbung.tex           # three-line stub, never edit per app
+│       ├── meta.yaml               # recipient + posting (source of truth)
+│       ├── meta.tex                # GENERATED, in .gitignore
+│       ├── anschreiben.md          # cover letter body
+│       ├── profil.md               # one-paragraph profile beside the photo
+│       ├── experience.md           # experience + teaching + volunteering + education
+│       ├── projects.md             # projects / research (DL with GitHub URLs)
+│       ├── languages.md            # languages
+│       ├── sections.tex            # section order (optional)
+│       └── skills.tex              # skills in flex-layout
+├── assets/
+│   ├── portrait.jpg                # your photo (CV page)
+│   └── signatur.png                # your signature scan (cover letter)
+├── bewerbung                       # wrapper script (calls container)
+└── .claude/skills/bewerbung.md     # skill for Claude Code
+```
+
+## Build
+
+```sh
+./bewerbung new <company>           # new application from _template/
+./bewerbung build <company>         # build PDF
+./bewerbung watch <company>         # auto-rebuild on change
+./bewerbung clean <company>         # remove build artefacts
+./bewerbung shell                   # interactive shell in the container
+```
+
+Output per application:
+- `<company>/bewerbung.pdf` (complete, both pages)
+- `<company>/anschreiben.pdf` (cover letter, page 1)
+- `<company>/lebenslauf.pdf` (CV, page 2+)
+
+Update the pipeline:
+```sh
+docker pull ghcr.io/tobiasbrummer/resume-me-agent:latest
+```
+
+## Pipeline conventions
+
+**Who renders what** (critical -- Markdown files must NOT contain what the
+LaTeX layer already renders):
+
+| Source | Content | Does NOT go in |
+|---|---|---|
+| `user.yaml` | name, address, phone, email, github | -- |
+| `meta.yaml` → `meta.tex` | recipient, date, subject, language, salutation, closing | personal stammdaten |
+| `profil.md` | one paragraph beside the photo | no headings |
+| `anschreiben.md` | body text only (between salutation and closing) | no sender, date, subject, salutation, closing, signature |
+| `experience.md`, `projects.md`, `languages.md` | CV sections from `##` onward | no H1, no `## Profile`, no reviewer notes |
+| `skills.tex` | skills flex-layout | -- |
+| `sections.tex` (optional) | CV section order incl. `\clearpage` | -- |
+
+**Markdown renderers** (custom, in `templates/preamble.tex` inside the image):
+
+- `### Role -- Suffix` → `\cvsubsection`, splits at ` -- ` to `Role \hfill Suffix`
+- `#### Company, City -- Date` → same logic
+- `Title https://URL` as DL-term → title + GitHub icon link
+- `: Description` below → body text
+
+**Skills** live in `skills.tex`, NOT in the Markdown files. `document.tex`
+loads them at the end via `\IfFileExists{skills.tex}{\subsection{Skills}\inputskills}`.
+
+**Enclosures note** at the bottom-right of the cover letter: optional via
+`anlagen: "..."` in `meta.yaml`. Omit for no block.
+
+## TeX pitfalls
+
+- `\dimexpr` / `\glueexpr`: `8*\rem` is WRONG. Right: `8\rem`. `*` only
+  between factor and integer constant.
+- `\raisebox{shift}{content}` needs TWO arguments.
+- `\addtokomafont{element}{}` needs a second argument (empty is fine).
+- Cover letter needs `\thispagestyle{empty}`, not `plain.scrheadings`.
+
+## Build caveats
+
+- Corrupt PDF / "Couldn't find trailer dictionary": usually zathura holds the
+  PDF open. `./bewerbung clean <company>` and rebuild.
+- `File 'meta.tex' not found` on first run: normal, cusdep generates it next pass.
+- Markdown cache `_markdown_<jobname>/`: gitignored, delete if behavior is weird.
+- Container has no zathura: `./bewerbung watch` rebuilds, the PDF viewer
+  runs on the host (point zathura at the mounted PDF).
+
+## Helper macros
+
+| Macro | What |
+|---|---|
+| `\absenderzeile` | header with name + address + icons (phone/mail/github) |
+| `\cvtitle` | language-dependent "Lebenslauf" / "Curriculum Vitae" |
+| `\anlagenlabel` | language-dependent "Anlagen" / "Enclosures" |
+| `\cvsubsection{...}` | subsubsection with `--`-split (Company\hfill Date) |
+| `\cvdlitem{...}` | DL-item with title + optional GitHub URL icon |
+| `\iconhref{URL}{content}` | link without underline, in purple |
+| `\flexstart` … `\flexitem{}` … `\flexend` | CSS-flex-flow layout |
+| `\flexcategory{...}` | skill category heading before a `\flexstart` block |
+
+## Tuning parameters (`templates/preamble.tex` inside the image)
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `\rem` | 0.4 cm | base unit (analogous to CSS rem) |
+| `\parskip` | 1.0\rem plus 0.4\rem | paragraph spacing (rubber) |
+| `\bildbreite` | 8\rem plus 2\rem | column width for the photo beside the profile |
+| `\flxgap` / `\flxrowsep` | 0.6\rem / 0.1\rem | flex item horizontal / vertical spacing |
+| `\flxcatabove` / `\flxcatbelow` | -0.4\rem / -0.8\rem | spacing around skill category headings |
+
+Editing these means editing the image -- rebuild via the pipeline repo.
+
+## New application
+
+```sh
+./bewerbung new <new-job>
+# Edit applications/<new-job>/{meta.yaml, anschreiben.md, profil.md, projects.md, experience.md, languages.md, skills.tex}
+./bewerbung build <new-job>
+```
+
+Workflow details (posting analysis, optimization for ATS/LLM screening,
+self-test) → see `.claude/skills/bewerbung.md`.

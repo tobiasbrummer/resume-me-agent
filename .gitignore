@@ -1,0 +1,26 @@
+# LaTeX build artefacts (anywhere in the tree -- mostly init/ during local test builds)
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.pdf
+
+# markdown package cache (witiko/markdown)
+_markdown_*/
+
+# meta.tex is generated per application via cusdep
+init/applications/*/meta.tex
+
+# NFS sticky-files
+.nfs*
+
+# Editor scratch
+*.swp
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc

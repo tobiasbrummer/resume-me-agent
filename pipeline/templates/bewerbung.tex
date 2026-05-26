@@ -1,0 +1,20 @@
+% Stub for a single application. Copied into each application directory by
+% `./bewerbung new <company>` and never edited per application.
+%
+% Files expected in the same directory:
+%   meta.tex         -- recipient + posting variables (\def\meta..., generated
+%                       from meta.yaml by the meta.yaml -> meta.tex cusdep)
+%   anschreiben.md   -- cover-letter body (markdown)
+%   profil.md        -- one-paragraph profile beside the photo
+%   experience.md    -- work history + teaching + volunteering + education
+%   projects.md      -- projects/research (definition-list with github URLs)
+%   languages.md     -- languages
+%   skills.tex       -- skills in flex-layout
+%   sections.tex     -- optional section order override
+%
+% The preamble + document templates are resolved via TEXINPUTS, set by the
+% `bewerbung` wrapper to /opt/pipeline/templates// inside the container.
+
+\input{preamble}
+\input{meta}
+\input{document}

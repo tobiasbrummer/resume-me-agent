@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+# resume-me-agent wrapper.
+#
+# Drops into your applications repo and runs the LaTeX pipeline inside the
+# resume-me-agent container. The image carries the pipeline (/opt/pipeline/)
+# and the init bundle (/opt/init/); your repo is mounted at /job.
+#
+# Usage:
+#   ./bewerbung new <company>       new application from applications/_template/
+#   ./bewerbung build <company>     one-shot PDF build
+#   ./bewerbung watch <company>     latexmk -pvc (auto-rebuild on change)
+#   ./bewerbung shell               interactive shell in the container
+#   ./bewerbung clean <company>     wipe build artefacts (latexmk -C)
+#   ./bewerbung pull                docker pull the image
+#
+# Container engine: prefers podman, falls back to docker. Override:
+#   BEWERBUNG_ENGINE=docker|podman
+# Image tag:
+#   BEWERBUNG_IMAGE=ghcr.io/tobiasbrummer/resume-me-agent:latest
+# Host fonts (Fira Sans required):
+#   ~/.local/share/fonts mounted read-only into the container
+
+set -euo pipefail
+
+IMAGE="${BEWERBUNG_IMAGE:-ghcr.io/tobiasbrummer/resume-me-agent:latest}"
+REPO="$(pwd)"
+FONTS_DIR="${BEWERBUNG_FONTS:-$HOME/.local/share/fonts}"
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+usage() {
+    sed -n '4,17p' "$0" | sed 's/^# \{0,1\}//'
+    exit "${1:-0}"
+}
+
+ENGINE=""
+require_engine() {
+    [ -n "$ENGINE" ] && return
+    if [ -n "${BEWERBUNG_ENGINE:-}" ]; then
+        ENGINE="$BEWERBUNG_ENGINE"
+    elif command -v podman >/dev/null 2>&1; then
+        ENGINE="podman"
+    elif command -v docker >/dev/null 2>&1; then
+        ENGINE="docker"
+    else
+        die "neither podman nor docker found. (Override: BEWERBUNG_ENGINE=...)"
+    fi
+}
+
+image_exists() {
+    "$ENGINE" image inspect "$IMAGE" >/dev/null 2>&1
+}
+
+ensure_image() {
+    require_engine
+    if ! image_exists; then
+        echo ">> image $IMAGE not present locally, pulling..."
+        "$ENGINE" pull "$IMAGE"
+    fi
+}
+
+ensure_app_dir() {
+    local job="$1"
+    [ -n "$job" ] || die "missing <company>"
+    [ -d "$REPO/applications/$job" ] || die "applications/$job does not exist"
+}
+
+# Run a command inside the container with all mounts and env set up.
+# Args: <interactive 0|1> <tty 0|1> <command...>
+run_in_container() {
+    local interactive="$1"; shift
+    local tty="$1"; shift
+
+    local flags=( --rm )
+    [ "$interactive" = "1" ] && flags+=( -i )
+    [ "$tty"         = "1" ] && flags+=( -t )
+
+    local font_mount=()
+    if [ -d "$FONTS_DIR" ]; then
+        font_mount=( -v "$FONTS_DIR:/usr/local/share/fonts/host:ro" )
+    fi
+
+    # docker needs explicit UID/GID-mapping; podman handles that via userns.
+    local user_flag=()
+    if [ "$ENGINE" = "docker" ]; then
+        user_flag=( -u "$(id -u):$(id -g)" -e HOME=/tmp )
+    fi
+
+    "$ENGINE" run "${flags[@]}" \
+        "${user_flag[@]}" \
+        -v "$REPO:/job" \
+        "${font_mount[@]}" \
+        -w /job \
+        -e JOB_REPO=/job \
+        -e BEWERBUNG_REPO=/job \
+        -e PIPELINE_ROOT=/opt/pipeline \
+        -e TEXINPUTS="/opt/pipeline/templates//:" \
+        "$IMAGE" "$@"
+}
+
+# --- Subcommands -----------------------------------------------------------
+cmd_pull() {
+    require_engine
+    "$ENGINE" pull "$IMAGE"
+}
+
+cmd_build() {
+    ensure_image
+    ensure_app_dir "${1:-}"
+    run_in_container 0 0 latexmk -r /opt/pipeline/.latexmkrc "applications/$1/bewerbung.tex"
+}
+
+cmd_watch() {
+    ensure_image
+    ensure_app_dir "${1:-}"
+    # -view=none -- zathura runs on the host, point it at the mounted PDF.
+    run_in_container 1 1 latexmk -r /opt/pipeline/.latexmkrc -pvc -view=none "applications/$1/bewerbung.tex"
+}
+
+cmd_new() {
+    local job="${1:-}"
+    [ -n "$job" ] || die "missing <company>"
+    local target="$REPO/applications/$job"
+    [ ! -e "$target" ] || die "applications/$job already exists"
+
+    if [ -d "$REPO/applications/_template" ]; then
+        # User has a customized _template -- preferred source.
+        cp -r "$REPO/applications/_template" "$target"
+        echo ">> applications/$job created from your applications/_template/"
+    else
+        # Fall back to the image's sterile template.
+        ensure_image
+        local tmp_id
+        tmp_id="$($ENGINE create "$IMAGE")"
+        "$ENGINE" cp "$tmp_id:/opt/init/applications/_template/." "$target"
+        "$ENGINE" rm "$tmp_id" >/dev/null
+        echo ">> applications/$job created from image's sterile template"
+        echo "   (you don't have applications/_template/ yet -- consider running"
+        echo "    ./setup.sh again to extract it, then customize with your data)"
+    fi
+    echo "   - edit meta.yaml (recipient, date, language, salutation)"
+    echo "   - edit anschreiben.md, profil.md, projects.md, experience.md, skills.tex"
+    echo "   - build: ./bewerbung build $job"
+}
+
+cmd_shell() {
+    ensure_image
+    run_in_container 1 1 bash
+}
+
+cmd_clean() {
+    ensure_image
+    ensure_app_dir "${1:-}"
+    run_in_container 0 0 latexmk -r /opt/pipeline/.latexmkrc -C "applications/$1/bewerbung.tex"
+}
+
+# --- Dispatch --------------------------------------------------------------
+case "${1:-}" in
+    build)  shift; cmd_build  "$@" ;;
+    watch)  shift; cmd_watch  "$@" ;;
+    new)    shift; cmd_new    "$@" ;;
+    shell)  shift; cmd_shell  "$@" ;;
+    clean)  shift; cmd_clean  "$@" ;;
+    pull)   shift; cmd_pull   "$@" ;;
+    -h|--help|help|"") usage 0 ;;
+    *)      echo "unknown subcommand: $1" >&2; usage 1 ;;
+esac

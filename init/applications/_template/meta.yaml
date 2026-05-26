@@ -1,0 +1,19 @@
+# Posting-specific metadata. Personal stammdaten (name, address, phone, email,
+# github) come from user.yaml at the repo root -- you do NOT need to repeat
+# them here. Edit only the recipient + posting fields below.
+
+sprache: de                                     # de | en
+
+empfaenger_firma: "COMPANY GMBH"
+empfaenger_name: ""                             # leave empty if unknown
+empfaenger_strasse: "STREET NUMBER"
+empfaenger_plz_ort: "ZIP CITY"
+
+betreff: "Bewerbung als ROLLE"
+datum: "DD. Month YYYY"                         # German: "25. Mai 2026" / English: "25 May 2026"
+anrede: "Sehr geehrte Damen und Herren,"        # German: "Sehr geehrte/r Frau/Herr Lastname," / English: "Dear Hiring Team," / "Hi <team>,"
+grussformel: "Mit freundlichen Grüßen"          # German: "Mit freundlichen Grüßen" / English: "Best regards,"
+
+# Optional: enclosures note (bottom-right of cover-letter page).
+# Comment out or remove for no enclosures block.
+anlagen: "Lebenslauf"
