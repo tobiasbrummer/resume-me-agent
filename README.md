@@ -170,7 +170,7 @@ templates without overwriting your customizations (it backs up to
 
 ## See also
 
-- **[career-ops](https://github.com/tobiasbrummer/career-ops)** -- companion
+- **[career-ops](https://career-ops.org/)** -- companion
   agent skill for job-search ops: scraping job postings from portals,
   tracking application status, follow-up cadence, dedup, liveness checks.
   Pairs naturally with resume-me-agent (career-ops finds postings,
