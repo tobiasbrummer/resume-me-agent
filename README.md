@@ -170,11 +170,10 @@ templates without overwriting your customizations (it backs up to
 
 ## See also
 
-- **[career-ops](https://career-ops.org/)** -- companion
-  agent skill for job-search ops: scraping job postings from portals,
-  tracking application status, follow-up cadence, dedup, liveness checks.
-  Pairs naturally with resume-me-agent (career-ops finds postings,
-  resume-me-agent writes the applications).
+- **[career-ops](https://career-ops.org/)** -- a separate open-source toolkit
+  for the job-search side: scraping postings from portals, tracking
+  applications, follow-up cadence. Different project; complementary if you
+  want both halves of the workflow.
 
 ## Repository layout
 
