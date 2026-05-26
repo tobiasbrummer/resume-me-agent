@@ -2,9 +2,11 @@
 # application's meta.tex. Edit this once, then per-application meta.yaml only
 # needs the recipient + posting fields.
 #
-# Rename this file to `user.yaml` after editing (and add it to .gitignore if
-# the repo will be public; default .gitignore already excludes it).
+# Rename this file to `user.yaml` after editing. The default .gitignore
+# excludes user.yaml so personal data doesn't accidentally end up in a
+# public repo.
 
+# --- Personal data ---------------------------------------------------------
 name:       "Your Name"
 adresse:    "Your Street 1"
 plz_ort:    "12345 Your City"
@@ -14,3 +16,22 @@ github:     "github.com/yourname"     # without the https://
 ort:        "Your City"               # used in date line on the cover letter
 sprache:    "de"                      # default language for new applications: de | en
 grussformel: "Mit freundlichen Grüßen"  # default closing -- per-application meta.yaml can override
+
+# --- Font configuration ----------------------------------------------------
+# Default (TeX Gyre Heros) ships with scheme-full and works out of the box.
+# To use Fira Sans, Inter, IBM Plex, etc.: install the font on your host
+# (~/.local/share/fonts on Linux, ~/Library/Fonts on macOS); the wrapper
+# mounts that directory into the container.
+#
+# font_family: "Fira Sans"
+#
+# If your font's weight files have non-standard names, override individually:
+# font_regular:  "Fira Sans Regular"
+# font_medium:   "Fira Sans Medium"
+# font_semibold: "Fira Sans SemiBold"
+# font_italic:   "Fira Sans Italic"
+#
+# Fontspec features (Ligatures, Kerning, OpenType variants, ...). Stick to
+# `Ligatures={Common,TeX}, Kerning=On` for safe cross-font defaults. For
+# Fira Sans the full set is:
+# font_features: "Numbers=OldStyle, Ligatures={Common,TeX}, Contextuals=Alternate, Kerning=On, StylisticSet={1}, Style=Alternate"

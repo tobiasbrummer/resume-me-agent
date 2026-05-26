@@ -17,19 +17,37 @@
 #   BEWERBUNG_ENGINE=docker|podman
 # Image tag:
 #   BEWERBUNG_IMAGE=ghcr.io/tobiasbrummer/resume-me-agent:latest
-# Host fonts (Fira Sans required):
-#   ~/.local/share/fonts mounted read-only into the container
+# Host fonts (mounted read-only into the container; default by OS):
+#   Linux:   ~/.local/share/fonts
+#   macOS:   ~/Library/Fonts
+#   Windows: %USERPROFILE%\AppData\Local\Microsoft\Windows\Fonts (via Git-Bash/MSYS)
+#   Override: BEWERBUNG_FONTS=/some/other/path
 
 set -euo pipefail
 
 IMAGE="${BEWERBUNG_IMAGE:-ghcr.io/tobiasbrummer/resume-me-agent:latest}"
 REPO="$(pwd)"
-FONTS_DIR="${BEWERBUNG_FONTS:-$HOME/.local/share/fonts}"
+
+# Pick the host font directory by OS. Override via BEWERBUNG_FONTS.
+# Falls back to $HOME/.local/share/fonts on unknown systems.
+detect_fonts_dir() {
+    if [ -n "${BEWERBUNG_FONTS:-}" ]; then
+        printf '%s' "$BEWERBUNG_FONTS"
+        return
+    fi
+    case "$(uname -s)" in
+        Linux*)               printf '%s' "$HOME/.local/share/fonts" ;;
+        Darwin*)              printf '%s' "$HOME/Library/Fonts" ;;
+        MINGW*|MSYS*|CYGWIN*) printf '%s' "${USERPROFILE:-$HOME}/AppData/Local/Microsoft/Windows/Fonts" ;;
+        *)                    printf '%s' "$HOME/.local/share/fonts" ;;
+    esac
+}
+FONTS_DIR="$(detect_fonts_dir)"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
 usage() {
-    sed -n '4,17p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '4,24p' "$0" | sed 's/^# \{0,1\}//'
     exit "${1:-0}"
 }
 

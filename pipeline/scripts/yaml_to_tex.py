@@ -34,6 +34,13 @@ HARDCODED_DEFAULTS = {
     "grussformel": "Mit freundlichen Grüßen",
     "empfaenger_name": "",
     "empfaenger_strasse": "",
+    # Font defaults. "TeX Gyre Heros" is bundled with texlive-fonts-recommended
+    # (always present in scheme-full), so the pipeline works out of the box.
+    # Override `font_family` in user.yaml to use Fira Sans, Inter, IBM Plex,
+    # etc. -- you need that font installed locally (the wrapper mounts your
+    # host font directory into the container).
+    "font_family":   "TeX Gyre Heros",
+    "font_features": "Ligatures={Common,TeX},Kerning=On",
 }
 
 FOOTER_STRINGS = {
@@ -68,6 +75,13 @@ def tex_escape(s: str) -> str:
 
 def write_def(out, name: str, value: str) -> None:
     out.write(f"\\def\\meta{name}{{{tex_escape(value)}}}\n")
+
+
+def write_def_raw(out, name: str, value: str) -> None:
+    """Like write_def but does not escape -- caller is responsible for valid TeX.
+    Used for fontspec options (Ligatures={...}, etc.) where literal braces and
+    commas are required TeX syntax."""
+    out.write(f"\\def\\meta{name}{{{value}}}\n")
 
 
 def tel_to_href(tel: str, country: str = "+49") -> str:
@@ -136,6 +150,22 @@ def main() -> None:
     # \metaanlagen undefined und document.tex unterdrueckt den Block.
     if merged.get("anlagen"):
         write_def(out, "anlagen", merged["anlagen"])
+
+    # Font configuration. font_family is mandatory (has a default). Each
+    # weight defaults to "<family> <Weight>" -- a fontspec convention that
+    # works for OpenType fonts with separately named weight files. If your
+    # font uses different naming, override the individual fields.
+    family   = merged["font_family"]
+    regular  = merged.get("font_regular")  or f"{family} Regular"
+    medium   = merged.get("font_medium")   or f"{family} Medium"
+    semibold = merged.get("font_semibold") or f"{family} SemiBold"
+    italic   = merged.get("font_italic")   or f"{family} Italic"
+    write_def(out, "fontfamily",   family)
+    write_def(out, "fontregular",  regular)
+    write_def(out, "fontmediumname", medium)    # \metafontmedium is a font macro
+    write_def(out, "fontsemiboldname", semibold)
+    write_def(out, "fontitalicname",   italic)
+    write_def_raw(out, "fontfeatures", merged["font_features"])
 
     # Sprache: ein Marker fuer babel-Wahl
     sprache = merged.get("sprache", "de")

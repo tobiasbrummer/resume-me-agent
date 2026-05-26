@@ -75,11 +75,34 @@ Read it before writing anything.
 ## Requirements
 
 - Docker or Podman (the wrapper auto-detects)
-- Fira Sans installed on the host -- the container mounts your
-  `~/.local/share/fonts` so any font you have works. The template uses Fira
-  Sans by default; if it's missing, install from
-  [fonts.google.com/specimen/Fira+Sans](https://fonts.google.com/specimen/Fira+Sans).
 - A coding agent (optional but recommended): Claude Code or OpenAI Codex
+- Optionally: any font you want to use, installed locally
+
+## Fonts
+
+The default font is `TeX Gyre Heros` -- it's bundled with `texlive-fonts-recommended`
+in the image, so the pipeline works out of the box on any platform without
+extra installs.
+
+To use a different font (Fira Sans, Inter, IBM Plex, …), install it on your
+host and set `font_family` in `user.yaml`:
+
+```yaml
+font_family: "Fira Sans"
+# Optional: tune fontspec features per font.
+# font_features: "Numbers=OldStyle, Ligatures={Common,TeX}, Kerning=On"
+```
+
+The wrapper mounts your host font directory into the container read-only --
+no font setup inside the container needed. Default font directories by OS:
+
+| OS | Font directory |
+|---|---|
+| Linux | `~/.local/share/fonts` |
+| macOS | `~/Library/Fonts` |
+| Windows (Git Bash / WSL) | `%USERPROFILE%\AppData\Local\Microsoft\Windows\Fonts` |
+
+Override with `BEWERBUNG_FONTS=/your/path`.
 
 ## How it works
 
