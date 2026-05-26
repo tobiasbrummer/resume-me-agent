@@ -96,6 +96,20 @@ extract_path() {
     "$ENGINE" cp "$CONTAINER_ID:$src" "$dst"
 }
 
+# Like extract_path, but skip if the destination already exists. Used for
+# user-editable pipeline templates -- preserves customizations on re-run.
+extract_path_if_missing() {
+    local src="$1" dst_rel="$2"
+    local dst="$TARGET/$dst_rel"
+    if [ -e "$dst" ] && [ "$FORCE" = "0" ]; then
+        info "  exists, keeping local edits: $dst_rel"
+        return
+    fi
+    [ -e "$dst" ] && rm -rf "$dst"
+    mkdir -p "$(dirname "$dst")"
+    "$ENGINE" cp "$CONTAINER_ID:$src" "$dst"
+}
+
 # --- main ------------------------------------------------------------------
 [ -d "$TARGET" ] || die "target directory does not exist: $TARGET"
 cd "$TARGET"
@@ -209,6 +223,15 @@ if [ "$KEEP_SOURCE" = "0" ]; then
         info "source files removed"
     fi
 fi
+
+# --- extract user-editable pipeline templates ------------------------------
+# Placed AFTER source cleanup so a "yes" to the cleanup prompt above doesn't
+# wipe these. Pipeline scripts and .latexmkrc stay in the image (build logic),
+# only the templates land in the repo so the user (or their coding agent) can
+# tweak the layout. TEXINPUTS in `bewerbung` prefers /job/pipeline/templates/
+# over the image fallback, so local edits win automatically.
+info "extracting layout templates (pipeline/templates/) ..."
+extract_path_if_missing /opt/pipeline/templates pipeline/templates
 
 # --- reset git --------------------------------------------------------------
 if [ "$KEEP_GIT" = "0" ] && [ -d "$TARGET/.git" ]; then

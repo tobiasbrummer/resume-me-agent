@@ -116,11 +116,13 @@ Override with `BEWERBUNG_FONTS=/your/path`.
 └────────────────────────────────┘    └──────────────────────────────┘
                                                     │
                                                     │  ./setup.sh extracts /opt/init/
+                                                    │  + pipeline/templates/
                                                     ↓
 ┌── Your applications repo (user) ─────────────────────────────────┐
 │  applications/_template/   (your generic baseline material)      │
 │  applications/<company>/   (one per application)                 │
 │  assets/portrait.jpg + signatur.png                              │
+│  pipeline/templates/       (preamble + document, editable)       │
 │  .claude/skills/bewerbung.md  or  AGENTS.md                      │
 │  CLAUDE.md  or  AGENTS.md                                        │
 │  bewerbung  (extracted wrapper)                                  │
@@ -131,6 +133,34 @@ When you run `./bewerbung build <company>`:
 - Container starts with image `ghcr.io/tobiasbrummer/resume-me-agent:latest`
 - Mounts: your repo → `/job`, host fonts → `/usr/local/share/fonts/host`
 - Runs `latexmk -r /opt/pipeline/.latexmkrc applications/<company>/bewerbung.tex`
+- TEXINPUTS prefers `/job/pipeline/templates/` over the image's
+  `/opt/pipeline/templates/`, so any template file you keep in your repo
+  wins over the baked-in version
+
+## Customizing the design
+
+`setup.sh` drops the LaTeX templates into `pipeline/templates/` in your
+repo. Edit them directly to change colors, fonts sizes, the photo shadow,
+section ordering, the cover-letter layout -- anything:
+
+| File | What it controls |
+|---|---|
+| `pipeline/templates/preamble.tex` | colors, font sizes, list bullets, skill flex-layout, markdown renderer hooks, the sender line |
+| `pipeline/templates/document.tex` | page-1 cover-letter layout and page-2+ CV layout, default section order |
+| `pipeline/templates/bewerbung.tex` | the three-line stub copied into each application |
+
+This is the natural workflow for letting a coding agent (Claude Code,
+Codex) reshape the design: "make the accent color teal", "drop the photo
+shadow", "move the date below the subject" -- the agent edits the file in
+your repo and the next build picks it up. No image rebuild needed.
+
+Pipeline scripts (`yaml_to_tex.py`, `split-pdf.sh`, `.latexmkrc`) stay in
+the image -- they're build glue, not layout. If you really need to tweak
+those, fork this repo and build your own image.
+
+Re-running `setup.sh` keeps your edits in `pipeline/templates/`. Use
+`--force` to overwrite them with the image's current defaults (backs up
+to `*.bak`).
 
 ## File roles in an application directory
 

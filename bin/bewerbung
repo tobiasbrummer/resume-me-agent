@@ -112,7 +112,7 @@ run_in_container() {
         -e JOB_REPO=/job \
         -e BEWERBUNG_REPO=/job \
         -e PIPELINE_ROOT=/opt/pipeline \
-        -e TEXINPUTS="/opt/pipeline/templates//:" \
+        -e TEXINPUTS="/job/pipeline/templates//:/opt/pipeline/templates//:" \
         "$IMAGE" "$@"
 }
 
