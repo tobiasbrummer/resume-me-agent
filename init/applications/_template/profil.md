@@ -1,6 +1,7 @@
 <!--
-Profile paragraph beside the photo on the CV page. EXACTLY ONE PARAGRAPH
-(parshape-free). Rewrite per application:
+Profile paragraph beside the photo on the CV page. ONE or TWO compact
+paragraphs (the photo scales to the text height, so keep it tight). Rewrite
+per application:
 - 2-3 strongest match-points for this specific role
 - at least 3 keywords from the posting in their exact phrasing
 - one clear sentence on what you're offering for this role
