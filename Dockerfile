@@ -11,7 +11,11 @@
 # ~/.local/share/fonts on /usr/local/share/fonts/host and entrypoint.sh
 # refreshes fc-cache on container start.
 
-FROM debian:bookworm-slim
+# Base: Debian 13 "trixie" ships TeX Live 2025 (markdown 3.x, current latexmk).
+# Bookworm's TeX Live 2022 / markdown 2.19 mis-rendered markdown tight lists
+# (bullet label dropped) and broke the lastpage cross-reference rerun. Both
+# render correctly on TL2025 -- the environment the pipeline was validated on.
+FROM debian:trixie-slim
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
