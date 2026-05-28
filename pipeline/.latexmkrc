@@ -32,10 +32,19 @@ our $PIPELINE_ROOT = $ENV{'PIPELINE_ROOT'} // dirname(__FILE__);
 our $JOB_REPO = $ENV{'JOB_REPO'} // $ENV{'PWD'};
 
 # --- custom dep: meta.yaml -> meta.tex via yaml_to_tex.py -------------------
+# meta.tex also depends on user.yaml (personal stammdaten incl. font_family)
+# and on yaml_to_tex.py itself. Declare both via rdb_ensure_file so latexmk
+# regenerates meta.tex when they change, not only when meta.yaml does --
+# otherwise changing user.yaml (e.g. switching fonts) leaves a stale meta.tex
+# and \setmainfont gets an empty name, silently falling back to Latin Modern.
 add_cus_dep('yaml', 'tex', 0, 'yaml_to_meta_tex');
 sub yaml_to_meta_tex {
     my ($base) = @_;
-    return system("BEWERBUNG_REPO=\"$JOB_REPO\" python3 \"$PIPELINE_ROOT/scripts/yaml_to_tex.py\" \"$base.yaml\" > \"$base.tex\"");
+    my $script   = "$PIPELINE_ROOT/scripts/yaml_to_tex.py";
+    my $useryaml = "$JOB_REPO/user.yaml";
+    rdb_ensure_file($rule, $script);
+    rdb_ensure_file($rule, $useryaml) if -e $useryaml;
+    return system("BEWERBUNG_REPO=\"$JOB_REPO\" python3 \"$script\" \"$base.yaml\" > \"$base.tex\"");
 }
 
 # --- Post-Build: bewerbung.pdf -> anschreiben.pdf (page 1) + lebenslauf.pdf
