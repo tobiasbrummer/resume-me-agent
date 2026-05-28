@@ -15,6 +15,10 @@
 % The preamble + document templates are resolved via TEXINPUTS, set by the
 % `bewerbung` wrapper to /opt/pipeline/templates// inside the container.
 
-\input{preamble}
+% meta.tex zuerst: definiert \metafontregular etc. (reine \def-Makros, laufen
+% problemlos vor \documentclass). preamble.tex referenziert diese Makros in
+% \setmainfont{\metafontregular} — also MUSS meta davor geladen sein, sonst ist
+% der Font-Name leer und fontspec faellt auf Latin Modern zurueck.
 \input{meta}
+\input{preamble}
 \input{document}

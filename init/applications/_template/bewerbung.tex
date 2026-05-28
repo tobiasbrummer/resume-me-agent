@@ -4,6 +4,8 @@
 % /opt/pipeline/templates// inside the container). meta.tex is generated
 % from meta.yaml by the meta.yaml -> meta.tex cusdep in .latexmkrc.
 
-\input{preamble}
+% meta.tex zuerst: definiert \metafontregular etc., die preamble.tex in
+% \setmainfont braucht. Reihenfolge ist kritisch — sonst leerer Font-Name.
 \input{meta}
+\input{preamble}
 \input{document}
