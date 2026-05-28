@@ -122,7 +122,7 @@ Override with `BEWERBUNG_FONTS=/your/path`.
 │  applications/_template/   (your generic baseline material)      │
 │  applications/<company>/   (one per application)                 │
 │  assets/portrait.jpg + signatur.png                              │
-│  pipeline/templates/       (preamble + document, editable)       │
+│  pipeline/templates/    (preamble + document + tokens, editable) │
 │  .claude/skills/bewerbung.md  or  AGENTS.md                      │
 │  CLAUDE.md  or  AGENTS.md                                        │
 │  bewerbung  (extracted wrapper)                                  │
@@ -145,9 +145,16 @@ section ordering, the cover-letter layout -- anything:
 
 | File | What it controls |
 |---|---|
-| `pipeline/templates/preamble.tex` | colors, font sizes, list bullets, skill flex-layout, markdown renderer hooks, the sender line |
+| `pipeline/templates/tokens.tex` | design tokens -- colors, the `\rem` base unit, the type/space/leading scales, the text measure; self-contained and editable |
+| `pipeline/templates/preamble.tex` | font sizes, list bullets, skill flex-layout, markdown renderer hooks, the sender line |
 | `pipeline/templates/document.tex` | page-1 cover-letter layout and page-2+ CV layout, default section order |
 | `pipeline/templates/bewerbung.tex` | the three-line stub copied into each application |
+
+The tokens in `tokens.tex` are generated from a shared design-token source
+(the author's `design-tokens` tool), so the application and the author's web
+identity stay visually consistent -- same font, palette, and proportions. You
+do not need that generator to tweak the look: edit `tokens.tex` directly in
+your repo and the next build picks it up.
 
 This is the natural workflow for letting a coding agent (Claude Code,
 Codex) reshape the design: "make the accent color teal", "drop the photo
@@ -211,7 +218,7 @@ templates without overwriting your customizations (it backs up to
 resume-me-agent/
   Dockerfile
   pipeline/                       # baked into /opt/pipeline/ in the image
-    templates/{bewerbung,preamble,document}.tex
+    templates/{bewerbung,preamble,document,tokens}.tex
     scripts/{yaml_to_tex.py,split-pdf.sh}
     .latexmkrc
   init/                           # baked into /opt/init/, extracted by setup.sh

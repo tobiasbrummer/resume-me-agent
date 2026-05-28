@@ -1,0 +1,61 @@
+% Design-Tokens fuer die Resume-Pipeline — Farben, der \rem-Anker (Basiseinheit),
+% die Type-/Space-/Leading-Skalen und die Lesespaltenbreite \measure.
+%
+% Zentrale, editierbare Konfig: Farben/Groessen/Abstaende hier direkt anpassen.
+% Single Source ist design-tokens/tokens.yaml — hast du den Generator, editiere
+% tokens.yaml und regeneriere (npm run build); sonst diese Datei direkt aendern.
+% Target: resume | Anker: 11.339pt (fix, kein fluid)
+
+% --- Farben (nur light) ---
+\definecolor{bg}{HTML}{FFFFFF}
+\definecolor{bg-elev}{HTML}{FAFAF7}
+\definecolor{bg-code}{HTML}{F4F4EE}
+\definecolor{fg}{HTML}{282A36}
+\definecolor{muted}{HTML}{44475A}
+\definecolor{faint}{HTML}{6272A4}
+\definecolor{rule}{HTML}{E2E2DC}
+\definecolor{rule-soft}{HTML}{EEEEEA}
+\definecolor{accent}{HTML}{BD93F9}
+
+% --- rem-Length (Anker fuer alle relativen Groessen) ---
+% Self-contained: deklariert \rem selbst (idempotent via \ifdefined),
+% damit tokens.tex ohne Vorarbeit im Preamble per \input nutzbar ist.
+\ifdefined\rem\else\newlength{\rem}\fi
+\setlength{\rem}{11.339pt}
+
+% --- Type-Skala (modular ratio 1.125) ---
+% \textBody, \textBase, \textHeader etc. ersetzen die alten \fontsize-Bloecke.
+\newcommand{\textIcon}{\fontsize{0.7023\rem}{1.2\rem}\selectfont}
+\newcommand{\textMicro}{\fontsize{0.7901\rem}{1.2\rem}\selectfont}
+\newcommand{\textBody}{\fontsize{0.8889\rem}{1.2\rem}\selectfont}
+\newcommand{\textBase}{\fontsize{1\rem}{1\rem}\selectfont}
+\newcommand{\textHeader}{\fontsize{1.2656\rem}{1\rem}\selectfont}
+\newcommand{\textBetreff}{\fontsize{1.4238\rem}{1\rem}\selectfont}
+\newcommand{\textAbs}{\fontsize{0.8889\rem}{0.6944\rem}\selectfont}
+
+% --- Space-Skala (modular ratio 1.333) ---
+% Benannte \dimexpr-Konstanten: \spaceXs, \spaceMd, \spaceBase, ...
+\newcommand{\spaceHair}{\dimexpr 0.1003\rem\relax}
+\newcommand{\spaceXs}{\dimexpr 0.1782\rem\relax}
+\newcommand{\spaceSm}{\dimexpr 0.3167\rem\relax}
+\newcommand{\spaceMd}{\dimexpr 0.4222\rem\relax}
+\newcommand{\spaceLg}{\dimexpr 0.5628\rem\relax}
+\newcommand{\spaceXl}{\dimexpr 0.7502\rem\relax}
+\newcommand{\spaceBase}{\dimexpr 1\rem\relax}
+\newcommand{\spaceTwoxl}{\dimexpr 1.333\rem\relax}
+\newcommand{\spaceThreexl}{\dimexpr 1.7769\rem\relax}
+\newcommand{\spaceFourxl}{\dimexpr 2.3686\rem\relax}
+\newcommand{\spaceFivexl}{\dimexpr 3.1573\rem\relax}
+\newcommand{\spaceSixxl}{\dimexpr 4.2087\rem\relax}
+\newcommand{\spaceSevenxl}{\dimexpr 5.6102\rem\relax}
+\newcommand{\spaceEightxl}{\dimexpr 7.4784\rem\relax}
+
+% --- Outdent (negative Hspaces fuer haengende Einrueckungen) ---
+\newcommand{\outdentSub}{\dimexpr -0.6\rem\relax}
+\newcommand{\outdentBody}{\dimexpr -1\rem\relax}
+\newcommand{\outdentProject}{\dimexpr -0.5\rem\relax}
+
+% --- Lesespalten-Breite ---
+% Self-contained: deklariert \measure selbst (idempotent).
+\ifdefined\measure\else\newlength{\measure}\fi
+\setlength{\measure}{360pt}

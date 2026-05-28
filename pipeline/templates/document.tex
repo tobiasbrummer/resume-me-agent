@@ -5,12 +5,21 @@
 %   meta.tex         -- \def\meta...-Variablen (Empfaenger, Datum, Betreff, ...)
 %   anschreiben.md   -- Anschreiben-Body
 %   profil.md        -- Profil-Absatz (genau einer; wird neben dem Foto gesetzt)
-%   experience.md    -- Berufserfahrung (optional, eigene MD)
-%   lebenslauf.md    -- restliche CV-Sektionen (Projects, Teaching, ...)
+%   experience.md    -- Berufserfahrung + Teaching + Volunteering + Education
+%   projects.md      -- Projekte/Research (DL mit GitHub-Links)
+%   languages.md     -- Sprachen
 %   skills.tex       -- Skills-Block im Flex-Layout (via "## Skills" Hook)
+%   sections.tex     -- optional: Section-Reihenfolge inkl. \clearpage
+% tokens.tex (Design-Tokens) wird von preamble.tex geladen, nicht hier.
 % Asset-Pfade (signatur, portrait) werden via TEXINPUTS aus assets/ gefunden.
 
 \begin{document}
+
+% Schatten-Offsets (tikz frisst \dimexpr nicht direkt in Koordinaten, darum
+% als feste Laengen aus der Space-Skala). Betreff/CV-Titel: \spaceHair (0.40mm),
+% Foto: \spaceXs (0.71mm).
+\newlength{\schattenklein}\setlength{\schattenklein}{\spaceHair}
+\newlength{\schattengross}\setlength{\schattengross}{\spaceXs}
 
 % --- Sprachwahl (de oder en) ---
 \ifdefined\metaspracheen
@@ -19,6 +28,11 @@
   \selectlanguage{ngerman}%
 \fi
 
+% Flattersatz ab hier global -- auch fuer die Absenderzeile. Sonst steht sie im
+% Anschreiben im Blocksatz, im Lebenslauf (erbt \RaggedRight) im Flattersatz
+% -> unterschiedliche Ausrichtung der \\-umbrochenen Zeilen.
+\RaggedRight
+
 % =============================================================
 % SEITE 1 -- ANSCHREIBEN (keine Seitenzahl, zaehlt nicht mit)
 % =============================================================
@@ -26,7 +40,7 @@
 \thispagestyle{empty}% Anschreiben: gar kein Footer, gar keine Seitenzahl
 
 % Absenderzeile oben
-{\absenderzeile}\\[\glueexpr 2.4\rem minus 2\rem\relax]
+{\absenderzeile}\\[\glueexpr \spaceFourxl minus \spaceThreexl\relax]
 
 % Empfaengerblock (linksbuendig)
 \fontsizebody \metaempfaengerfirma\\
@@ -34,20 +48,20 @@
 \metaempfaengerstrasse\\
 \metaempfaengerplzort
 
-\vspace{\dimexpr 1.2\rem minus 0.4\rem\relax}
+\vspace{\spaceBase minus \spaceMd}
 
 % Betreff (fett, links, mit hartem purple Schatten analog Foto) und Datum (rechts).
-% Text wird zweimal gesetzt: Schatten in purple bei 0.8mm/-0.8mm, Original bei (0,0).
-\noindent\hspace{\dimexpr -1\rem\relax}%
+% Text wird zweimal gesetzt: Schatten in purple bei \schattenklein, Original bei (0,0).
+\noindent\hspace{-\spaceBase}%
 \begin{tikzpicture}[baseline=(t.base), inner sep=0pt, outer sep=0pt]
-  \node[anchor=base west, text=purple] at (0.3mm,-0.3mm)
+  \node[anchor=base west, text=purple] at (\schattenklein,-\schattenklein)
         {\fontsemibold\fontsizebetreff\metabetreff};
   \node[anchor=base west]              (t) at (0,0)
         {\fontsemibold\fontsizebetreff\metabetreff};
 \end{tikzpicture}%
 \hfill\fontsizeabsender\textcolor{muted}\metadatum
 
-\vspace{\glueexpr 0.4\rem plus 0.2\rem\relax}
+\vspace{\spaceMd plus \spaceXs}
 
 % Anrede
 {\fontsizebody \metaanrede}
@@ -55,14 +69,14 @@
 % Anschreiben-Body (direkt aus Markdown). Das \par MUSS innerhalb der
 % \fontsizebody-Gruppe stehen, sonst nutzt der Linebreak des letzten Absatzes
 % den default \baselineskip (kleiner) statt 1.2\rem -> letzte Zeile gestaucht.
-\RaggedRight
+% (\RaggedRight steht jetzt global oben nach der Sprachwahl.)
 {\fontsizebody \markdownInput{anschreiben.md}\par}
 
 % Grussformel + Signatur
 {\fontsizebody \metagrussformel}
 
-\vspace{\dimexpr -0.2\rem\relax}
-\hspace{\dimexpr -0.8\rem\relax}\includegraphics[height=\glueexpr 3\rem plus 1\rem\relax]{signatur}\\[\dimexpr -0.3\rem\relax]
+\vspace{-\spaceSm}
+\hspace{-\spaceTwoxl}\includegraphics[height=\glueexpr \spaceSixxl plus \spaceBase minus \spaceBase\relax]{signatur}\\[\dimexpr -\spaceXs\relax]
 \metaname
 
 % Anlagen-Hinweis unten rechts (optional, wenn \metaanlagen definiert).
@@ -84,41 +98,41 @@
             % wirken gestaucht). Section-Headings haben eigene \addtokomafont-Settings.
 
 % Absenderzeile wieder oben
-{\absenderzeile}\\[\glueexpr 1.8\rem plus 1.6\rem\relax]
+{\absenderzeile}\\[\glueexpr \spaceThreexl plus \spaceThreexl\relax]
 
 % CV-Titel (sprachabhaengig via \cvtitle aus preamble.tex)
-\noindent\hspace{\dimexpr -1\rem\relax}%
+\noindent\hspace{-\spaceBase}%
 \begin{tikzpicture}[baseline=(t.base), inner sep=0pt, outer sep=0pt]
-  \node[anchor=base west, text=purple] at (0.3mm,-0.3mm)
+  \node[anchor=base west, text=purple] at (\schattenklein,-\schattenklein)
         {\fontsemibold\fontsizebetreff\cvtitle};
   \node[anchor=base west]              (t) at (0,0)
         {\fontsemibold\fontsizebetreff\cvtitle};
 \end{tikzpicture}%
-\vspace{\dimexpr -0.8\rem\relax}
+\vspace{-\spaceXl}
 
 % Profil + Portrait: Foto RECHTS, Text links. Bildhoehe = Profil-Boxhoehe.
 \IfFileExists{profil.md}{%
   \begin{lrbox}{\profilbox}%
-    \begin{minipage}[t]{\dimexpr\linewidth-\bildbreite-1em\relax}\vspace{0pt}%
+    \begin{minipage}[t]{\dimexpr\linewidth-\bildbreite\relax}\vspace{0pt}%
       \fontsizebody\markdownInput{profil.md}%
     \end{minipage}%
   \end{lrbox}%
   % \hspace nach \hfill schiebt das Bild in den rechten Seitenrand. Erzeugt
   % eine harmlose "Overfull \hbox"-Warnung im Log.
-  \noindent\usebox{\profilbox}\hfill\hspace*{\dimexpr 1.5\rem\relax}%
+  \noindent\usebox{\profilbox}\hfill\hspace*{\spaceThreexl}%
   \begin{minipage}[t]{\bildbreite}\vspace{0pt}%
-    % Foto mit hartem purple Schatten (1mm rechts+unten) via TikZ.
-    % Schatten zuerst (anchor=north west bei 1mm,-1mm), Foto drueber bei (0,0).
+    % Foto mit hartem purple Schatten via TikZ (\schattengross rechts+unten).
+    % Schatten zuerst (anchor=north west), Foto drueber bei (0,0).
     \sbox\imgbox{\includegraphics[height=\dimexpr\ht\profilbox+\dp\profilbox\relax,
                                   width=\bildbreite, keepaspectratio]{portrait}}%
     \begin{tikzpicture}[inner sep=0pt, outer sep=0pt]
       \node[anchor=north west, fill=purple,
             minimum width=\wd\imgbox,
-            minimum height=\dimexpr\ht\imgbox+\dp\imgbox\relax] at (0.8mm,-0.8mm) {};
+            minimum height=\dimexpr\ht\imgbox+\dp\imgbox\relax] at (\schattengross,-\schattengross) {};
       \node[anchor=north west] at (0,0) {\usebox\imgbox};
     \end{tikzpicture}%
   \end{minipage}\par
-  \vspace{\dimexpr 0.4\rem\relax}%
+  \vspace{\spaceMd}%
 }{}%
 
 % Section-Reihenfolge: per Application override via sections.tex (optional).

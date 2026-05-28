@@ -1,7 +1,9 @@
-% Bewerbungs-Template: Preamble
-% Wird von templates/bewerbung.tex eingebunden.
+% Bewerbungs-Template: Preamble (Pakete, Layout-Logik, Markdown-Renderer, Makros).
+% Wird von templates/bewerbung.tex eingebunden und laedt tokens.tex (Design-Tokens:
+% Farben, \rem-Anker, Type-/Space-/Leading-Skala). tokens.tex ist die zentrale,
+% editierbare Stelle fuer Farben/Groessen/Abstaende.
 
-\documentclass[10.5pt,a4paper]{scrartcl}
+\documentclass[11pt,a4paper]{scrartcl}
 
 % Keine automatische Sektionsnummerierung -- wir wollen kein "1.1 Profile"
 \setcounter{secnumdepth}{-2}
@@ -32,9 +34,19 @@
 \newfontfamily\fontitalic{\metafontitalicname}[\metafontfeatures]
 
 
-% --- REM ---
-\newlength{\rem}
-\setlength{\rem}{0.4cm}
+% --- REM + Tokens ---
+% tokens.tex ist self-contained: deklariert \rem/\measure selbst (idempotent)
+% und setzt Farben, \rem-Wert, Type-/Space-/Leading-Skala. WICHTIG: muss VOR
+% \usepackage{geometry} stehen, weil die Seitenraender ueber \dimexpr\rem*N
+% berechnet werden — ist \rem hier noch 0, gibt es keine Margins.
+% Single Source: design-tokens/tokens.yaml (npm run build). xcolor zuerst,
+% weil tokens.tex \definecolor nutzt.
+\usepackage{xcolor}
+\input{tokens.tex}
+% Compat-Aliases fuer den alten Namespace — existierende \color{text}/\color{purple}
+% Aufrufe bleiben funktional, ohne dass man die migrieren muss:
+\colorlet{text}{fg}
+\colorlet{purple}{accent}
 
 % --- Packages ---
 \usepackage{fontawesome5}
@@ -50,33 +62,32 @@
 \usepackage[all]{nowidow}
 \usepackage{xstring}     % \IfSubStr / \StrBefore / \StrBehind -- fuer \cvsubsection, \cvdlitem
 
-% --- Seitenlayout: angelehnt an das ODT (oben 0.85cm, unten 1.5cm, links 2.5cm, rechts 2cm) ---
+% --- Seitenlayout (angelehnt ans ODT) ---
+% Seitenraender kommen aus der Space-Skala (tokens.tex, ratio 1.333).
 \usepackage[
   a4paper,
-  top    = {\dimexpr\rem*4\relax},
-  bottom = {\dimexpr\rem*5\relax},
-  left   = {\dimexpr\rem*5\relax},
-  right  = {\dimexpr\rem*5\relax},
-  headheight = {\dimexpr\rem*3\relax},
-  headsep    = \rem,
-  footskip   = {\dimexpr\rem*2\relax},
+  top    = {\spaceSixxl},
+  bottom = {\spaceSevenxl},
+  left   = {\spaceFivexl},
+  right  = {\spaceSevenxl},
+  headheight = {\spaceFivexl},
+  headsep    = {\spaceBase},
+  footskip   = {\spaceThreexl},
 ]{geometry}
 
-% --- Farben (zurueckhaltend) ---
-\usepackage{xcolor}
-\definecolor{text}{HTML}{282A36}
-\definecolor{muted}{HTML}{44475A}
-\definecolor{purple}{HTML}{BD93F9}
+% --- Farben ---
+% Definiert in tokens.tex (fg/muted/accent/bg/...), oben via \input geladen.
+% Compat-Aliases text->fg und purple->accent stehen im REM-Block.
 
 
 % --- Listen, Bilder, Layout-Helfer ---
 \usepackage{enumitem}
 \setlist[itemize]{
-  leftmargin = \dimexpr 0.6\rem\relax,
-  itemsep    = \dimexpr 0.2\rem\relax,
+  leftmargin = \spaceLg,
+  itemsep    = \spaceXs,
   parsep     = 0pt,
-  topsep     = 0em,
-label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem\relax},
+  topsep     = 0pt,
+label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{-\spaceSm},
 }
 
 % Asset-Pfad: erst absoluter Container-Mount, dann relativer Fallback fuer
@@ -94,6 +105,12 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
 \lofoot*{\color{muted}\fontsizeabsender\metaseite~\thepage~\metavon~\pageref{LastPage}}
 \setkomafont{pagefoot}{\fontregular}
 
+% --- Purple-Streifen am unteren Seitenrand (volle Breite, jede Seite) ---
+% Hintergrund-Overlay via eso-pic: Rechteck volle Papierbreite, \spaceMd hoch
+% (1.333^-3 = 0.42rem), buendig an der Unterkante. Jede Seite (auch Anschreiben).
+\usepackage{eso-pic}
+\AddToShipoutPictureBG{\AtPageLowerLeft{\textcolor{purple}{\rule{\paperwidth}{\spaceMd}}}}
+
 % --- Hyperlinks (dezent, ohne Box) ---
 \usepackage[
   colorlinks = true,
@@ -105,8 +122,8 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
 
 
 % --- Unterstreichungs-Einstellungen ---
-\renewcommand{\ULdepth}{\dimexpr 0.35\rem\relax}        % Abstand der Linie zur Schrift
-\renewcommand{\ULthickness}{\dimexpr 0.2\rem\relax}    % Strichstaerke
+\renewcommand{\ULdepth}{\spaceSm}        % Abstand der Linie zur Schrift
+\renewcommand{\ULthickness}{\spaceXs}    % Strichstaerke
 
 % In \href einbauen
 \let\oldhref\href
@@ -119,7 +136,7 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
 
 % --- Absatz-Stil: kein Einzug, Abstand zwischen Absaetzen ---
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{\glueexpr 1.0\rem plus 0.4\rem\relax}
+\setlength{\parskip}{\spaceBase plus \spaceMd}
 
 % Seiten unten *nicht* per parskip-Stretch ausgleichen -- sonst verteilt TeX
 % den ungenutzten Platz auf die Absatz-Abstaende, und kompaktere Aenderungen
@@ -128,32 +145,35 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
 % \raggedbottom
 
 % --- Schriftgrößen ---
-\newcommand{\fontsizebody}{\fontsize{\dimexpr 0.9\rem\relax}{\dimexpr 1.2\rem\relax}\selectfont}
-\newcommand{\fontsizebetreff}{\fontsize{\dimexpr 1.4\rem\relax}{\rem}\selectfont}
-\newcommand{\fontsizeheader}{\fontsize{\dimexpr 1.2\rem\relax}{\rem}\selectfont}
-\newcommand{\fontsizesubheader}{\fontsize{\dimexpr 1\rem\relax}{\rem}\selectfont}
-\newcommand{\fontsizeabsender}{\fontsize{\dimexpr 0.9\rem\relax}{\dimexpr 0.7\rem\relax}\selectfont}
+% Die Groessen kommen als \textBody/\textBase/\textHeader/\textBetreff/\textAbs
+% aus tokens.tex (Type-Skala). Diese \let-Aliase geben dem Dokument-Layer die
+% sprechenden Namen \fontsizebody etc.
+\let\fontsizebody=\textBody
+\let\fontsizebetreff=\textBetreff
+\let\fontsizeheader=\textHeader
+\let\fontsizesubheader=\textBase
+\let\fontsizeabsender=\textAbs
 
 % --- Section-Schriftgrade & Abstaende dezenter ---
 \addtokomafont{section}{\fontsemibold\fontsizebetreff\color{text}}
-\addtokomafont{subsection}{\fontsemibold\fontsizeheader\color{text}\hspace{\dimexpr -0.6\rem\relax}}
+\addtokomafont{subsection}{\fontsemibold\fontsizeheader\color{text}\hspace{-\spaceLg}}
 \addtokomafont{subsubsection}{\fontsemibold\fontsizesubheader\color{text}}
 % Hinweis: scrartcl kennt nur bis \subsubsection. Tieferes Level (####) wird
 % ueber den Markdown-Renderer headingFour -> \cvsubsection abgefangen, der
 % intern \subsubsection ruft -- daher kein \addtokomafont{subsubsubsection} noetig.
 \RedeclareSectionCommand[
-  beforeskip = 0.0cm,
-  afterskip  = 0.0cm,
+  beforeskip = 0pt,
+  afterskip  = 0pt,
   runin      = false,
 ]{section}
 \RedeclareSectionCommand[
-  beforeskip = 0.0cm,
-  afterskip  = \dimexpr -0.4\rem\relax,
+  beforeskip = 0pt,
+  afterskip  = \dimexpr -\spaceMd\relax,
   runin      = false,
 ]{subsection}
 \RedeclareSectionCommand[
-  beforeskip = 0.0cm,
-  afterskip  = \dimexpr -0.8\rem\relax,
+  beforeskip = 0pt,
+  afterskip  = \dimexpr -\spaceXl\relax,
   runin      = false,
 ]{subsubsection}
 
@@ -168,8 +188,9 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
 \newsavebox{\imgbox}     % fuer Foto + Schatten-Overlay in document.tex
 
 % Spaltenbreite fuer das Foto neben dem Profil (Skip = stretch/shrink moeglich).
+% Aus der Space-Skala (tokens.tex): \spaceEightxl mit \spaceThreexl Stretch.
 \newlength{\bildbreite}
-\setlength{\bildbreite}{\glueexpr 8\rem plus 2\rem\relax}
+\setlength{\bildbreite}{\spaceEightxl plus \spaceThreexl}
 
 % --- Flex-Layout: CSS-flexbox-flow ohne Spalten -----------------------------
 % Jedes \flexitem wird in seiner natuerlichen Breite gesetzt (\sbox), gefolgt
@@ -188,13 +209,13 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
 \newdimen\flxrowsep
 \newdimen\flxcatabove
 \newdimen\flxcatbelow
-\flxgap     = \dimexpr 0.6\rem\relax   % horizontaler Abstand zwischen Items
-\flxrowsep  = \dimexpr 0.1\rem\relax   % vertikaler Abstand zwischen Reihen
-\flxcatabove= \dimexpr -0.4\rem\relax   % Abstand ueber Kategorie-Heading
-\flxcatbelow= \dimexpr -0.8\rem\relax   % Abstand unter Kategorie-Heading (vor items)
+\flxgap     = \spaceLg    % horizontaler Abstand zwischen Items
+\flxrowsep  = \spaceHair  % vertikaler Abstand zwischen Reihen
+\flxcatabove= -\spaceMd   % (ungenutzt: flexcategory nutzt jetzt \subsubsection)
+\flxcatbelow= -\spaceXl   % (ungenutzt)
 
 \newcommand{\flxbullet}[1]{%
-  \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr 0.2\rem\relax}#1%
+  \textcolor{purple}{\faAngleRight[regular]}\hspace{\spaceXs}#1%
 }
 
 % \flexstart oeffnet eine Gruppe und ueberschreibt \parskip lokal mit
@@ -229,11 +250,11 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
 \newcommand{\flexend}{\par\endgroup}
 
 % Skill-Kategorie-Heading (innerhalb skills.tex vor jedem \flexstart-Block).
-% Abstaende ueber/unter dem Heading via \flxcatabove / \flxcatbelow.
 \newcommand{\flexcategory}[1]{%
-  \par\vspace{\flxcatabove}%
-  {\fontsemibold\fontsizesubheader\color{text}#1}\par
-  \vspace{\flxcatbelow}%
+  % Gleicher Render-Pfad wie ### (headingThree -> \subsubsection), damit Skill-
+  % Kategorien und Experience-Rollen identisch aussehen (Font + Abstaende).
+  % Stern = kein TOC-Eintrag fuer Kategorien.
+  \subsubsection*{#1}%
 }
 
 % Hilfsmakro: skills.tex einlesen mit \endlinechar=-1, sonst injiziert
@@ -268,9 +289,9 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
 %   "Titel https://URL -- ..."    -> wie oben (Rest verworfen)
 % Description (": ...") bleibt unveraendert darunter.
 \newcommand{\cvdlitem}[1]{%
-  \par\vspace{\dimexpr -0.6\rem\relax}%
+  \par\vspace{-\spaceLg}%
   \noindent
-  \llap{\textcolor{purple}{\faArrowRight[solid]}\hspace{\dimexpr 0.5\rem\relax}}%
+  \llap{\textcolor{purple}{\faArrowRight[solid]}\hspace{\spaceLg}}%
   \IfSubStr{#1}{--}{%
     \StrBefore[1]{#1}{ --}[\dlfirst]%
   }{%
@@ -279,27 +300,28 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
   \IfSubStr{\dlfirst}{https://}{%
     \StrBefore[1]{\dlfirst}{ https://}[\dltitle]%
     \StrBehind[1]{\dlfirst}{https://}[\dlurl]%
-    {\fontsemibold\fontsizebody\dltitle}\hspace{\dimexpr 0.3\rem\relax}%
+    {\fontsemibold\fontsizebody\dltitle}\hspace{\spaceSm}%
     \iconhref{https://\dlurl}{\faGithub}%
   }{%
     {\fontsemibold\fontsizebody\dlfirst}%
   }%
-  \par\vspace{\dimexpr -1.0\rem\relax}%
+  \par\vspace{-\spaceBase}%
 }
 
 % Absender-Zeile (einzeilig): Name + Adresse links, drei FontAwesome-Icons
 % (Telefon, Email, GitHub) rechts via \hfill -- alle drei klickbar.
+% Icon-Groessen via \textIcon/\textBody (Type-Skala). Negatives Kerning jetzt
+% auf der Space-Skala: -0.9 -> -\spaceXl (^-1), -1.2 -> -\spaceTwoxl (^1).
 \newcommand{\absenderzeile}{%
   \fontsizeabsender
-  {\fontsemibold\metaname}\ \textcolor{purple}{\faAngleRight[regular]}\ \fontsizeabsender\metaadresse\ \textcolor{purple}{\faAngleRight[regular]}\ \metaplzort
-  \par
-  \vspace{\dimexpr -0.9\rem\relax}
-  \hspace{\dimexpr -1.2\rem\relax}
-\textcolor{purple}{\fontsize{\dimexpr 0.7\rem\relax}{\rem}\selectfont\faPhone[solid]}\hspace{\dimexpr 0.3\rem\relax}\href{\metatelhref}{\textcolor{muted}{\metatel}}
-  \hspace{\dimexpr 0.2\rem\relax}
-\textcolor{purple}{\fontsize{\dimexpr 0.7\rem\relax}{\rem}\selectfont\faEnvelope[solid]}\hspace{\dimexpr 0.3\rem\relax}\href{mailto:\metaemail}{\textcolor{muted}{\metaemail}}
-  \hspace{\dimexpr 0.2\rem\relax}
-\textcolor{purple}{\fontsize{\dimexpr 0.9\rem\relax}{\rem}\selectfont\raisebox{\dimexpr -0.1\rem\relax}{\faGithub}}\hspace{\dimexpr 0.3\rem\relax}\href{https://\metagithub}{\textcolor{muted}{\metagithub}}
+  {\fontsemibold\metaname}\ \textcolor{purple}{\faAngleRight[regular]}\ \fontsizeabsender\metaadresse\ \textcolor{purple}{\faAngleRight[regular]}\ \metaplzort\hfill
+  \\
+  \hspace{-\spaceLg}
+\textcolor{purple}{\textIcon\faPhone[solid]}\hspace{\spaceSm}\href{\metatelhref}{\textcolor{muted}{\metatel}}
+  \hspace{\spaceXs}
+\textcolor{purple}{\textIcon\faEnvelope[solid]}\hspace{\spaceSm}\href{mailto:\metaemail}{\textcolor{muted}{\metaemail}}
+  \hspace{\spaceXs}
+\textcolor{purple}{\textBody\raisebox{-\spaceHair}{\faGithub}}\hspace{\spaceSm}\href{https://\metagithub}{\textcolor{muted}{\metagithub}}\hfill
 }
 
 % --- Markdown-Renderer (witiko/markdown CTAN package) ---
@@ -320,11 +342,11 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
     headingOne        = {\section{#1}},
     headingTwo        = {\subsection{#1}}, % "## ..." -> \subsection (Skills wird ueber document.tex eingebunden)
     headingThree      = {\subsubsection{#1}},                   % alle ### (z.B. Rolle, Projekt-Titel)
-    headingFour       = {\cvsubsection{#1}\vspace{\dimexpr 0.1\rem\relax}},                    % alle #### (splittet bei " -- " auf Firma\hfill Datum)
+    headingFour       = {\cvsubsection{#1}\vspace{\spaceHair}},                    % alle #### (splittet bei " -- " auf Firma\hfill Datum)
     strongEmphasis    = {\fontmedium{#1}}\fontregular,   % alle **fett**
     emphasis          = {\fontitalic{#1}}\fontregular,                       % alle _kursiv_
     link              = {\bodylink{#2}{#1}},                     % alle [text](url)
-    dlBegin           = {\vspace{\dimexpr 0.6\rem\relax}},
+    dlBegin           = {\vspace{\spaceLg}},
     dlEnd             = {},
     dlItem            = {\cvdlitem{#1}},
     dlItemEnd         = {},
@@ -332,3 +354,4 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{\dimexpr -0.3\rem
     dlDefinitionEnd   = {\par},
   },
 }
+
