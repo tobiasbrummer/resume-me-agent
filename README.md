@@ -3,7 +3,7 @@
 > "Resume me, agent." — Markdown-to-PDF job applications with a coding agent in the loop.
 
 A small toolkit for writing job applications (cover letter + CV) as Markdown,
-rendering them to PDF via LaTeX + Fira Sans, and optimizing them for ATS / LLM
+rendering them to PDF via LaTeX, and optimizing them for ATS / LLM
 screening with a coding agent (Claude Code, OpenAI Codex). Built around a
 single Docker image so the only host dependency is Docker (or Podman).
 
