@@ -37,10 +37,10 @@
 % SEITE 1 -- ANSCHREIBEN (keine Seitenzahl, zaehlt nicht mit)
 % =============================================================
 
-\thispagestyle{empty}% Anschreiben: gar kein Footer, gar keine Seitenzahl
+\thispagestyle{anschreiben}% Anschreiben: keine Seitenzahl, aber Anlagen im Footer (gleiche Baseline wie CV-Seitenzahl)
 
 % Absenderzeile oben
-{\absenderzeile}\\[\glueexpr \spaceFourxl minus \spaceThreexl\relax]
+{\absenderzeile}\\[\spaceFourxl]
 
 % Empfaengerblock (linksbuendig)
 \fontsizebody \metaempfaengerfirma\\
@@ -48,7 +48,7 @@
 \metaempfaengerstrasse\\
 \metaempfaengerplzort
 
-\vspace{\spaceBase minus \spaceMd}
+\vspace{\spaceXl}
 
 % Betreff (fett, links, mit hartem purple Schatten analog Foto) und Datum (rechts).
 % Text wird zweimal gesetzt: Schatten in purple bei \schattenklein, Original bei (0,0).
@@ -61,7 +61,7 @@
 \end{tikzpicture}%
 \hfill\fontsizeabsender\textcolor{muted}\metadatum
 
-\vspace{\spaceMd plus \spaceXs}
+\vspace{\glueexpr \spaceMd plus \spaceXs minus \spaceXs\relax}
 
 % Anrede
 {\fontsizebody \metaanrede}
@@ -76,15 +76,11 @@
 {\fontsizebody \metagrussformel}
 
 \vspace{-\spaceSm}
-\hspace{-\spaceTwoxl}\includegraphics[height=\glueexpr \spaceSixxl plus \spaceBase minus \spaceBase\relax]{signatur}\\[\dimexpr -\spaceXs\relax]
+\hspace{-\spaceTwoxl}\includegraphics[height=\glueexpr \spaceFivexl plus \spaceBase minus \spaceMd\relax]{signatur}\\[\dimexpr -\spaceXs\relax]
 \metaname
 
-% Anlagen-Hinweis unten rechts (optional, wenn \metaanlagen definiert).
-% Label sprachabhaengig via \anlagenlabel (Anlagen/Enclosures), Inhalt aus meta.yaml.
-\vfill
-\ifdefined\metaanlagen
-  \noindent\hfill{\fontsizeabsender\color{muted}\anlagenlabel: \metaanlagen}%
-\fi
+% Anlagen-Hinweis steht jetzt im Footer (Pagestyle "anschreiben", definiert in
+% preamble.tex) -- auf gleicher Baseline wie die CV-Seitenzahl, kein \vfill noetig.
 
 % =============================================================
 % SEITE 2+ -- LEBENSLAUF (Seitenzahlen ab 1, linksbuendig im Footer)
@@ -97,8 +93,19 @@
             % mit 10.5pt mainfont und kleinerem baselineskip -> mehrzeilige Bullet-Items
             % wirken gestaucht). Section-Headings haben eigene \addtokomafont-Settings.
 
-% Absenderzeile wieder oben
-{\absenderzeile}\\[\glueexpr \spaceThreexl plus \spaceThreexl\relax]
+% Absenderzeile oben
+{\absenderzeile}\\[\spaceFourxl]
+
+% Platzhalter in Hoehe des Empfaengerblocks (unsichtbar via \phantom):
+% haelt den CV-Titel auf gleicher Hoehe wie den Betreff im Anschreiben,
+% ohne die Empfaenger-Adresse im Lebenslauf sichtbar zu setzen. Gleiche
+% \\-Struktur wie der echte Block -> identische vertikale Hoehe.
+\fontsizebody \phantom{\metaempfaengerfirma}\\
+\ifx\metaempfaengername\empty\else\phantom{\metaempfaengername}\\\fi
+\phantom{\metaempfaengerstrasse}\\
+\phantom{\metaempfaengerplzort}
+
+\vspace{\spaceXl}
 
 % CV-Titel (sprachabhaengig via \cvtitle aus preamble.tex)
 \noindent\hspace{-\spaceBase}%

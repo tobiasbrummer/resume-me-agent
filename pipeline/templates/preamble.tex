@@ -72,7 +72,7 @@
   right  = {\spaceSevenxl},
   headheight = {\spaceFivexl},
   headsep    = {\spaceBase},
-  footskip   = {\spaceThreexl},
+  footskip   = {\spaceFourxl},
 ]{geometry}
 
 % --- Farben ---
@@ -105,6 +105,14 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{-\spaceSm},
 \lofoot*{\color{muted}\fontsizeabsender\metaseite~\thepage~\metavon~\pageref{LastPage}}
 \setkomafont{pagefoot}{\fontregular}
 
+% Pagestyle fuer die Anschreiben-Seite: keine Seitenzahl (Anschreiben zaehlt
+% nicht mit), aber der Anlagen-Hinweis rechts-aussen im Footer. Dadurch sitzt
+% er auf exakt derselben Baseline wie die CV-Seitenzahl (beide ueber \footskip
+% positioniert) -- nur eben rechts statt links.
+\newpairofpagestyles{anschreiben}{%
+  \rofoot*{\ifdefined\metaanlagen\color{muted}\fontsizeabsender\anlagenlabel:~\metaanlagen\fi}%
+}
+
 % --- Purple-Streifen am unteren Seitenrand (volle Breite, jede Seite) ---
 % Hintergrund-Overlay via eso-pic: Rechteck volle Papierbreite, \spaceMd hoch
 % (1.333^-3 = 0.42rem), buendig an der Unterkante. Jede Seite (auch Anschreiben).
@@ -136,7 +144,7 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{-\spaceSm},
 
 % --- Absatz-Stil: kein Einzug, Abstand zwischen Absaetzen ---
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{\spaceBase plus \spaceMd}
+\setlength{\parskip}{\glueexpr \spaceBase plus \spaceSm minus \spaceSm\relax}
 
 % Seiten unten *nicht* per parskip-Stretch ausgleichen -- sonst verteilt TeX
 % den ungenutzten Platz auf die Absatz-Abstaende, und kompaktere Aenderungen
