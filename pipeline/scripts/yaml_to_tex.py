@@ -142,6 +142,7 @@ def main() -> None:
 
     # Posting-spezifisch
     write_def(out, "betreff",     merged.get("betreff", ""))
+    write_def(out, "betreffzusatz",     merged.get("betreff_zusatz", ""))
     write_def(out, "datum",       merged.get("datum", ""))
     write_def(out, "anrede",      merged.get("anrede", ""))
     write_def(out, "grussformel", merged.get("grussformel", "Mit freundlichen Grüßen"))

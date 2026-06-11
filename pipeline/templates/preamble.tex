@@ -316,20 +316,32 @@ label      = \textcolor{purple}{\faAngleRight[regular]}\hspace{-\spaceSm},
   \par\vspace{-\spaceBase}%
 }
 
-% Absender-Zeile (einzeilig): Name + Adresse links, drei FontAwesome-Icons
-% (Telefon, Email, GitHub) rechts via \hfill -- alle drei klickbar.
-% Icon-Groessen via \textIcon/\textBody (Type-Skala). Negatives Kerning jetzt
-% auf der Space-Skala: -0.9 -> -\spaceXl (^-1), -1.2 -> -\spaceTwoxl (^1).
+% Generische, klickbare Kontakt-Links. Format: \contactlink{<icon>}{<href>}{<label>}.
+% \contactlinks wird beim Build aus user.yaml (links:) nach
+% pipeline/templates/contact-links.tex generiert; hier nur Format + leerer
+% Fallback, damit ein Build auch ohne generierte Datei durchlaeuft.
+\newcommand{\contactlink}[3]{%
+  \hspace{\spaceXs}%
+  \textcolor{purple}{\textBody{#1}}\hspace{\spaceSm}%
+  \href{#2}{\textcolor{muted}{#3}}%
+}
+\providecommand{\contactlinks}{}
+\IfFileExists{contact-links.tex}{\input{contact-links.tex}}{}
+
+% Absender-Zeile (einzeilig): Name + Adresse links, Kontakt-Icons rechts via
+% \hfill -- alle klickbar. Telefon/Email aus den \meta*-Stammdaten, die uebrigen
+% Profil-Links generisch aus \contactlinks (user.yaml -> links:).
+% Icon-Groessen via \textIcon/\textBody (Type-Skala).
 \newcommand{\absenderzeile}{%
   \fontsizeabsender
   {\fontsemibold\metaname}\ \textcolor{purple}{\faAngleRight[regular]}\ \fontsizeabsender\metaadresse\ \textcolor{purple}{\faAngleRight[regular]}\ \metaplzort\hfill
   \\
   \hspace{-\spaceLg}
-\textcolor{purple}{\textIcon\faPhone[solid]}\hspace{\spaceSm}\href{\metatelhref}{\textcolor{muted}{\metatel}}
-  \hspace{\spaceXs}
-\textcolor{purple}{\textIcon\faEnvelope[solid]}\hspace{\spaceSm}\href{mailto:\metaemail}{\textcolor{muted}{\metaemail}}
-  \hspace{\spaceXs}
-\textcolor{purple}{\textBody\raisebox{-\spaceHair}{\faGithub}}\hspace{\spaceSm}\href{https://\metagithub}{\textcolor{muted}{\metagithub}}\hfill
+  \textcolor{purple}{\textIcon\faPhone[solid]}\hspace{\spaceSm}\href{\metatelhref}{\textcolor{muted}{\metatel}}
+  \hspace{\spaceLg}
+  \textcolor{purple}{\textIcon\faEnvelope[solid]}\hspace{\spaceSm}\href{mailto:\metaemail}{\textcolor{muted}{\metaemail}}%
+  \hspace{\spaceLg}
+  \contactlinks\hfill
 }
 
 % --- Markdown-Renderer (witiko/markdown CTAN package) ---
